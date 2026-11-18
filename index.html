@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>永恆沙漏：冥界之秤 | SCALES OF MA'AT: ETERNAL SANDS</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Three.js for 3D Interactive Relic Altar & 3D Temple Mini-Game -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <!-- Google Fonts: Cinzel, Noto Serif TC, Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#090807',
+            obsidianLight: '#12100E',
+            antiqueGold: '#C5A059',
+            goldMuted: '#8E6F36',
+            goldBright: '#E5C687',
+            lapis: '#13293D',
+            lapisGlow: '#1E466E',
+            sandstone: '#EAE0D5',
+            sandMuted: '#9E9386',
+            crimsonCurse: '#7A2021',
+          },
+          fontFamily: {
+            display: ['Cinzel', 'Noto Serif TC', 'serif'],
+            serif: ['Noto Serif TC', 'serif'],
+            sans: ['Noto Sans TC', 'sans-serif'],
+          },
+          backgroundImage: {
+            'gold-gradient': 'linear-gradient(135deg, #E5C687 0%, #C5A059 50%, #7D5E26 100%)',
+            'obsidian-radial': 'radial-gradient(circle at center, #181410 0%, #090807 75%)',
+            'lapis-radial': 'radial-gradient(circle at center, #13293D 0%, #090807 70%)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* 基礎奢華暗黑神話質感設定 */
+    :root {
+      --gold: #C5A059;
+      --gold-bright: #E5C687;
+      --obsidian: #090807;
+      --lapis: #13293D;
+      --sandstone: #EAE0D5;
+    }
+
+    body {
+      background-color: var(--obsidian);
+      color: var(--sandstone);
+      font-family: 'Noto Sans TC', sans-serif;
+      overflow-x: hidden;
+      selection-background-color: #C5A059;
+      selection-color: #090807;
+    }
+
+    ::selection {
+      background: rgba(197, 160, 89, 0.35);
+      color: #EAE0D5;
+    }
+
+    /* 自訂捲軸 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090807;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #13293D, #C5A059);
+      border-radius: 3px;
+    }
+
+    /* 奢華神話幾何框線與細節 */
+    .myth-border {
+      border: 1px solid rgba(197, 160, 89, 0.28);
+      position: relative;
+    }
+    .myth-border::before, .myth-border::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-color: #C5A059;
+      border-style: solid;
+      pointer-events: none;
+      transition: all 0.4s ease;
+    }
+    .myth-border::before {
+      top: -1px;
+      left: -1px;
+      border-width: 1px 0 0 1px;
+    }
+    .myth-border::after {
+      bottom: -1px;
+      right: -1px;
+      border-width: 0 1px 1px 0;
+    }
+    .myth-border:hover::before, .myth-border:hover::after {
+      width: 16px;
+      height: 16px;
+      border-color: #E5C687;
+    }
+
+    /* 金屬質感文字 */
+    .text-gold-foil {
+      background: linear-gradient(180deg, #F2DCB3 0%, #C5A059 55%, #826229 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* =========================================
+       MOTION DESIGN SYSTEM (五大指定動畫系統)
+       1. Fade In (淡入)
+       2. Slide In (滑入)
+       3. Hover Animation (懸停動畫)
+       4. Scroll Animation (滾動動畫)
+       5. Page Transition (頁面過場動畫)
+       ========================================= */
+
+    /* 1. Fade In 動畫 */
+    .motion-fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .motion-fade-in.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 2. Slide In 左右交錯滑入動畫 */
+    .motion-slide-left {
+      opacity: 0;
+      transform: translateX(-45px);
+      transition: opacity 0.95s cubic-bezier(0.16, 1, 0.3, 1), transform 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .motion-slide-right {
+      opacity: 0;
+      transform: translateX(45px);
+      transition: opacity 0.95s cubic-bezier(0.16, 1, 0.3, 1), transform 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .motion-slide-left.is-visible,
+    .motion-slide-right.is-visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* 3. Hover Animation 按鈕流光邊框與神力光暈 */
+    .btn-myth {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .btn-myth::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(229, 198, 135, 0.25), transparent);
+      transition: left 0.65s ease;
+    }
+    .btn-myth:hover::before {
+      left: 100%;
+    }
+    .btn-myth:hover {
+      box-shadow: 0 0 24px rgba(197, 160, 89, 0.32), inset 0 0 12px rgba(197, 160, 89, 0.15);
+      border-color: #E5C687;
+      transform: translateY(-2px);
+    }
+
+    /* 角色神像卡片懸停動畫 */
+    .char-portrait-card {
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.6s ease;
+    }
+    .char-portrait-card:hover {
+      transform: translateY(-6px) scale(1.015);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(197, 160, 89, 0.22);
+    }
+    .char-portrait-card .sacred-ring {
+      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+    }
+    .char-portrait-card:hover .sacred-ring {
+      transform: rotate(45deg) scale(1.08);
+      opacity: 0.9;
+    }
+    .char-portrait-card .hieroglyph-float {
+      opacity: 0.18;
+      transform: translateY(8px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .char-portrait-card:hover .hieroglyph-float {
+      opacity: 0.65;
+      transform: translateY(-4px);
+    }
+
+    /* 角色切換轉場動畫 */
+    @keyframes characterSwitchIn {
+      0% {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+    .char-switch-animate {
+      animation: characterSwitchIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* 5. Page Transition 沙暴黑金簾幕過場 */
+    #page-transition-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+      background: radial-gradient(circle at center, #18130D 0%, #090807 85%);
+    }
+    #page-transition-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .transition-scarab {
+      animation: pulseSpin 2.5s linear infinite;
+    }
+    @keyframes pulseSpin {
+      0% { transform: rotate(0deg) scale(0.95); opacity: 0.7; }
+      50% { transform: rotate(180deg) scale(1.05); opacity: 1; }
+      100% { transform: rotate(360deg) scale(0.95); opacity: 0.7; }
+    }
+
+    /* 慢速神環旋轉 */
+    @keyframes slowSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-slow-spin {
+      animation: slowSpin 28s linear infinite;
+    }
+    .animate-reverse-spin {
+      animation: slowSpin 36s linear infinite reverse;
+    }
+
+    /* 背景紋理疊加 */
+    .noise-overlay {
+      background-image: radial-gradient(rgba(197, 160, 89, 0.06) 1px, transparent 0);
+      background-size: 32px 32px;
+    }
+
+    /* Canvas 容器響應式 */
+    canvas {
+      display: block;
+      outline: none;
+    }
+  </style>
+</head>
+<body class="bg-obsidian text-sandstone antialiased selection:bg-antiqueGold selection:text-obsidian">
+
+  <!-- =========================================================
+       5. PAGE TRANSITION OVERLAY (沙暴與黑金神徽頁面過場遮罩)
+       ========================================================= -->
+  <div id="page-transition-overlay" aria-hidden="true">
+    <div class="text-center flex flex-col items-center">
+      <!-- 聖甲蟲與真理天平幾何 SVG -->
+      <svg class="w-20 h-20 text-antiqueGold transition-scarab mb-4" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="50" cy="50" r="44" stroke-dasharray="4 4" />
+        <circle cx="50" cy="50" r="34" />
+        <polygon points="50,12 84,50 50,88 16,50" />
+        <circle cx="50" cy="50" r="8" fill="rgba(197, 160, 89, 0.35)" />
+      </svg>
+      <p class="font-display tracking-[0.35em] text-xs text-goldBright uppercase">SCALES OF MA'AT</p>
+      <p id="transition-label" class="font-serif text-sm text-sandstone/80 mt-1 tracking-widest">正在開啟神廟結界...</p>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       4. SCROLL PROGRESS BAR (頂部尼羅河金線捲動進度條)
+       ========================================================= -->
+  <div class="fixed top-0 left-0 w-full h-[2px] z-[60] bg-obsidianLight/60">
+    <div id="scroll-progress-bar" class="h-full w-0 bg-gradient-to-r from-lapisGlow via-antiqueGold to-goldBright shadow-[0_0_10px_#C5A059] transition-all duration-100"></div>
+  </div>
+
+  <!-- =========================================================
+       1. NAVIGATION BAR (半透明黑曜石毛玻璃固定導覽列)
+       ========================================================= -->
+  <header id="navbar" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 bg-obsidian/75 backdrop-blur-md border-b border-antiqueGold/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- 遊戲標誌 Logo -->
+      <a href="#hero" data-nav-label="返回冥界啟程點" class="nav-transition-link flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-full border border-antiqueGold/50 flex items-center justify-center bg-lapis/30 group-hover:border-goldBright group-hover:shadow-[0_0_15px_rgba(197,160,89,0.4)] transition-all">
+          <!-- 荷魯斯之眼與沙漏結合徽章 -->
+          <svg class="w-6 h-6 text-antiqueGold group-hover:text-goldBright transition-colors" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 12 H48 L32 32 L48 52 H16 L32 32 Z" />
+            <circle cx="32" cy="32" r="5" fill="#C5A059" />
+            <line x1="10" y1="32" x2="54" y2="32" stroke-opacity="0.5" />
+          </svg>
+        </div>
+        <div>
+          <span class="block font-serif font-bold text-base sm:text-lg tracking-widest text-gold-foil">永恆沙漏：冥界之秤</span>
+          <span class="block font-display text-[10px] tracking-[0.25em] text-sandMuted uppercase">Scales of Ma'at</span>
+        </div>
+      </a>
+
+      <!-- 桌面端導覽連結 -->
+      <nav class="hidden lg:flex items-center gap-7 text-sm font-medium tracking-wider">
+        <a href="#hero" data-nav-label="首頁・冥界序章" class="nav-transition-link text-sandstone/80 hover:text-goldBright transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-antiqueGold hover:after:w-full after:transition-all">首頁</a>
+        <a href="#worldview" data-nav-label="世界觀・真理與混沌" class="nav-transition-link text-sandstone/80 hover:text-goldBright transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-antiqueGold hover:after:w-full after:transition-all">世界觀</a>
+        <a href="#characters" data-nav-label="神祇與角色・命運化身" class="nav-transition-link text-sandstone/80 hover:text-goldBright transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-antiqueGold hover:after:w-full after:transition-all">神祇與角色</a>
+        <a href="#story" data-nav-label="神話篇章・杜阿特之旅" class="nav-transition-link text-sandstone/80 hover:text-goldBright transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-antiqueGold hover:after:w-full after:transition-all">神話篇章</a>
+        <a href="#explore-3d" data-nav-label="聖物3D殿堂・阿努比斯祭壇" class="nav-transition-link text-sandstone/80 hover:text-goldBright transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-antiqueGold hover:after:w-full after:transition-all">聖物3D殿堂</a>
+        <a href="#temple-game" data-nav-label="3D神廟試煉・拉之眼考驗" class="nav-transition-link px-4 py-2 rounded border border-antiqueGold/60 bg-lapis/40 text-goldBright hover:bg-antiqueGold hover:text-obsidian transition-all shadow-[0_0_15px_rgba(19,41,61,0.8)]">3D神廟試煉</a>
+      </nav>
+
+      <!-- 手機端漢堡按鈕 -->
+      <button id="mobile-menu-btn" aria-label="開啟導覽選單" class="lg:hidden p-2.5 rounded border border-antiqueGold/40 text-antiqueGold hover:bg-antiqueGold/10">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 手機端展開選單 -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-obsidian/95 border-b border-antiqueGold/30 px-6 py-5 space-y-3 backdrop-blur-xl">
+      <a href="#hero" data-nav-label="首頁・冥界序章" class="nav-transition-link mobile-link block py-2 text-sandstone hover:text-goldBright border-b border-white/5">首頁 HERO</a>
+      <a href="#worldview" data-nav-label="世界觀・真理與混沌" class="nav-transition-link mobile-link block py-2 text-sandstone hover:text-goldBright border-b border-white/5">世界觀介紹</a>
+      <a href="#characters" data-nav-label="神祇與角色・命運化身" class="nav-transition-link mobile-link block py-2 text-sandstone hover:text-goldBright border-b border-white/5">神祇與角色</a>
+      <a href="#story" data-nav-label="神話篇章・杜阿特之旅" class="nav-transition-link mobile-link block py-2 text-sandstone hover:text-goldBright border-b border-white/5">神話篇章探索</a>
+      <a href="#explore-3d" data-nav-label="聖物3D殿堂・阿努比斯祭壇" class="nav-transition-link mobile-link block py-2 text-sandstone hover:text-goldBright border-b border-white/5">聖物 3D 殿堂</a>
+      <a href="#temple-game" data-nav-label="3D神廟試煉・拉之眼考驗" class="nav-transition-link mobile-link block py-2.5 text-center rounded border border-antiqueGold text-goldBright bg-lapis/40">進入 3D 神廟試煉</a>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       2. 【首頁 HERO】全螢幕沉浸式動態金沙粒子視覺
+       ========================================================= -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+    <!-- 動態金沙與餘燼粒子 Canvas -->
+    <canvas id="hero-sand-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+    
+    <!-- 幽暗神廟光影與青金石漸層遮罩 -->
+    <div class="absolute inset-0 bg-gradient-to-b from-obsidian/40 via-transparent to-obsidian z-10 pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(19,41,61,0.38)_0%,rgba(9,8,7,0.92)_75%)] z-10 pointer-events-none"></div>
+
+    <!-- 巨型背景幾何星象羅盤裝飾 -->
+    <div class="absolute w-[520px] h-[520px] sm:w-[740px] sm:h-[740px] rounded-full border border-antiqueGold/10 animate-slow-spin pointer-events-none z-10 flex items-center justify-center">
+      <div class="w-[82%] h-[82%] rounded-full border border-dashed border-antiqueGold/15 animate-reverse-spin"></div>
+    </div>
+
+    <!-- HERO 核心文字與 CTA -->
+    <div class="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 text-center">
+      <!-- 古埃及象形符文眉標 -->
+      <div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-antiqueGold/30 bg-obsidianLight/70 backdrop-blur-sm mb-6 motion-fade-in">
+        <span class="text-antiqueGold text-xs tracking-[0.3em]">𓂀 𓆣 𓇳</span>
+        <span class="font-display text-xs tracking-[0.28em] text-sandMuted uppercase">Dark Mythology Action RPG</span>
+        <span class="text-antiqueGold text-xs tracking-[0.3em]">𓋹  feather</span>
+      </div>
+
+      <!-- 主標題 -->
+      <h1 class="font-serif font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider leading-tight mb-4 text-gold-foil drop-shadow-[0_6px_30px_rgba(0,0,0,0.9)] motion-fade-in">
+        永恆沙漏：冥界之秤
+      </h1>
+      
+      <p class="font-display text-sm sm:text-lg md:text-xl tracking-[0.35em] text-antiqueGold/90 uppercase mb-8 motion-fade-in">
+        SCALES OF MA'AT : ETERNAL SANDS
+      </p>
+
+      <!-- 核心副標題 -->
+      <p class="font-serif text-lg sm:text-2xl text-sandstone/90 max-w-2xl mx-auto leading-relaxed mb-10 border-y border-antiqueGold/20 py-4 motion-fade-in">
+        「當真理之羽失去重量，眾神將重臨尼羅河畔。」
+      </p>
+
+      <!-- 雙重互動 CTA 按鈕 -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 motion-fade-in">
+        <a href="#worldview" data-nav-label="踏入冥界領域・探尋瑪阿特秩序" class="nav-transition-link btn-myth w-full sm:w-auto px-8 py-4 rounded bg-gradient-to-r from-[#231B12] via-[#2F2316] to-[#1A140E] border border-antiqueGold text-goldBright font-serif font-semibold tracking-widest text-base flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+          <span>踏入冥界領域</span>
+          <svg class="w-4 h-4 text-antiqueGold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </a>
+
+        <a href="#explore-3d" data-nav-label="開啟 3D 聖物殿堂" class="nav-transition-link btn-myth w-full sm:w-auto px-8 py-4 rounded bg-lapis/50 hover:bg-lapis/80 border border-antiqueGold/50 text-sandstone font-serif font-semibold tracking-widest text-base flex items-center justify-center gap-3 backdrop-blur-sm">
+          <svg class="w-5 h-5 text-antiqueGold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+          <span>開啟3D聖物殿堂</span>
+        </a>
+      </div>
+
+      <!-- 向下滾動提示 -->
+      <div class="mt-16 flex flex-col items-center opacity-70 animate-bounce">
+        <span class="text-[11px] font-display tracking-[0.3em] text-sandMuted uppercase mb-2">Scroll to Awaken</span>
+        <div class="w-[1px] h-10 bg-gradient-to-b from-antiqueGold to-transparent"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       3. 【世界觀介紹 (Worldview)】Scroll Effect 故事敘事與真理天平
+       ========================================================= -->
+  <section id="worldview" class="relative py-24 sm:py-32 bg-obsidian noise-overlay border-t border-antiqueGold/15">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- 區塊標題 -->
+      <div class="text-center max-w-3xl mx-auto mb-20 motion-fade-in">
+        <span class="font-display text-xs tracking-[0.35em] text-antiqueGold uppercase block mb-3">Chronicles of Duat</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-sandstone mb-6">世界觀：失衡的永恆沙漏</h2>
+        <div class="w-24 h-[1px] bg-gradient-to-r from-transparent via-antiqueGold to-transparent mx-auto mb-6"></div>
+        <p class="text-sandMuted leading-relaxed text-base sm:text-lg">
+          在尼羅河的盡頭與太陽沉落之處，維繫宇宙運轉的「瑪阿特（Ma'at）真理之羽」出現了裂痕。隨著捲動深入冥界，見證三個神話紀元的崩解與重塑。
+        </p>
+      </div>
+
+      <!-- Scroll Effect 互動雙欄：左側固定「動態真理天平儀」，右側三紀元捲動敘事 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        
+        <!-- 左側：Sticky 真理天平視覺裝置 (隨捲動傾斜與發光) -->
+        <div class="lg:col-span-5 lg:sticky lg:top-28">
+          <div class="myth-border rounded-xl bg-gradient-to-b from-obsidianLight to-[#0D131A] p-8 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-antiqueGold/20 pb-4 mb-6">
+              <div>
+                <span class="text-xs font-display tracking-widest text-antiqueGold block">ALTAR OF MA'AT</span>
+                <h3 id="era-display-title" class="font-serif text-xl font-bold text-sandstone mt-1">第一紀元：黃金太陽紀</h3>
+              </div>
+              <span id="era-badge" class="px-3 py-1 rounded-full text-xs font-serif border border-antiqueGold/40 bg-antiqueGold/10 text-goldBright">
+                秩序平衡
+              </span>
+            </div>
+
+            <!-- 動態 SVG 真理天平儀 -->
+            <div class="relative py-6 flex justify-center items-center">
+              <div class="absolute w-48 h-48 rounded-full bg-lapis/30 blur-2xl"></div>
+              <svg id="maat-scale-svg" class="w-full max-w-[300px] h-auto relative z-10" viewBox="0 0 300 260" fill="none">
+                <!-- 底座與中柱 -->
+                <path d="M110 240 H190 L175 225 H125 Z" fill="#C5A059" fill-opacity="0.3" stroke="#C5A059" stroke-width="1.5"/>
+                <rect x="146" y="55" width="8" height="170" fill="url(#goldPillar)" />
+                <circle cx="150" cy="45" r="14" stroke="#E5C687" stroke-width="2" fill="#13293D"/>
+                <circle cx="150" cy="45" r="5" fill="#E5C687"/>
+
+                <!-- 可旋轉天平橫樑群組 (由 JS 根據捲動角度動態旋轉) -->
+                <g id="scale-beam-group" style="transform-origin: 150px 65px; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);">
+                  <line x1="45" y1="65" x2="255" y2="65" stroke="#E5C687" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="150" cy="65" r="6" fill="#C5A059"/>
+                  
+                  <!-- 左秤盤：亡者之心 (Heart / Ib) -->
+                  <g id="left-pan" style="transform-origin: 55px 65px; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);">
+                    <line x1="55" y1="65" x2="30" y2="145" stroke="#C5A059" stroke-width="1"/>
+                    <line x1="55" y1="65" x2="80" y2="145" stroke="#C5A059" stroke-width="1"/>
+                    <path d="M25 145 Q55 165 85 145 Z" fill="#13293D" stroke="#E5C687" stroke-width="1.5"/>
+                    <!-- 發光心臟聖罐 -->
+                    <path d="M47 125 C47 115, 63 115, 63 125 C63 135, 55 142, 55 142 C55 142, 47 135, 47 125 Z" fill="#9E2A2B" stroke="#E5C687" stroke-width="1"/>
+                  </g>
+
+                  <!-- 右秤盤：真理之羽 (Feather of Ma'at) -->
+                  <g id="right-pan" style="transform-origin: 245px 65px; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);">
+                    <line x1="245" y1="65" x2="220" y2="145" stroke="#C5A059" stroke-width="1"/>
+                    <line x1="245" y1="65" x2="270" y2="145" stroke="#C5A059" stroke-width="1"/>
+                    <path d="M215 145 Q245 165 275 145 Z" fill="#13293D" stroke="#E5C687" stroke-width="1.5"/>
+                    <!-- 發光真理之羽 -->
+                    <path d="M245 142 Q238 118 248 102 Q256 118 245 142 Z" fill="#E5C687" opacity="0.9"/>
+                  </g>
+                </g>
+
+                <defs>
+                  <linearGradient id="goldPillar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#E5C687"/>
+                    <stop offset="100%" stop-color="#6E5220"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+
+            <!-- 紀元狀態指標 -->
+            <div class="space-y-3 mt-4 pt-4 border-t border-antiqueGold/15">
+              <div class="flex justify-between text-xs text-sandMuted">
+                <span>瑪阿特秩序完整度</span>
+                <span id="maat-integrity-text" class="text-goldBright font-mono">100%</span>
+              </div>
+              <div class="w-full h-1.5 bg-obsidian rounded-full overflow-hidden">
+                <div id="maat-integrity-bar" class="h-full bg-gradient-to-r from-lapisGlow to-goldBright transition-all duration-700" style="width: 100%"></div>
+              </div>
+              <p id="era-display-desc" class="text-xs text-sandMuted/90 leading-relaxed pt-2">
+                太陽神拉駕馭「曼傑特太陽船」巡行白晝，冥界天平紋絲不動，生死輪迴遵循古老的真理法則。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右側：三個神話紀元滾動敘事卡片 -->
+        <div class="lg:col-span-7 space-y-12">
+          
+          <!-- 紀元 1 -->
+          <article data-era="0" class="worldview-era-card myth-border rounded-xl p-8 sm:p-10 bg-obsidianLight/80 backdrop-blur-sm transition-all duration-500 motion-slide-right">
+            <div class="flex items-center gap-3 text-antiqueGold font-display text-xs tracking-[0.25em] mb-3">
+              <span>ERA I // THE SOLAR ZENITH</span>
+              <span class="h-[1px] flex-1 bg-antiqueGold/25"></span>
+            </div>
+            <h3 class="font-serif text-2xl sm:text-3xl font-bold text-gold-foil mb-4">黃金太陽紀：赫利奧波利斯的誓約</h3>
+            <p class="text-sandstone/85 leading-relaxed mb-5">
+              創世之初，原初之水「努恩（Nun）」退去，金字塔形的聖丘「奔奔石」升起。太陽神拉以光芒驅散混沌，將「真理之羽」交予正義女神瑪阿特，並命胡狼神阿努比斯於杜阿特冥界設立審判大廳。
+            </p>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 text-sm">
+              <div>
+                <span class="text-xs text-sandMuted block">核心聖物</span>
+                <span class="text-goldBright font-serif">永恆金沙漏・初生之羽</span>
+              </div>
+              <div>
+                <span class="text-xs text-sandMuted block">統治神祇</span>
+                <span class="text-sandstone font-serif">太陽神拉 / 瑪阿特</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- 紀元 2 -->
+          <article data-era="1" class="worldview-era-card myth-border rounded-xl p-8 sm:p-10 bg-obsidianLight/80 backdrop-blur-sm transition-all duration-500 motion-slide-right">
+            <div class="flex items-center gap-3 text-antiqueGold font-display text-xs tracking-[0.25em] mb-3">
+              <span>ERA II // THE DUSK FRACTURE</span>
+              <span class="h-[1px] flex-1 bg-antiqueGold/25"></span>
+            </div>
+            <h3 class="font-serif text-2xl sm:text-3xl font-bold text-gold-foil mb-4">黃昏失衡紀：阿佩普的深淵低語</h3>
+            <p class="text-sandstone/85 leading-relaxed mb-5">
+              每當夜幕降臨，太陽神拉必須乘夜航船穿越冥界十二道門。潛伏於深淵的混沌巨蛇「阿佩普（Apophis）」吞噬了第七道門的星辰，黑沙逆流湧入真理大廳，使無數貪婪與執念的靈魂滯留人間，化為不朽的砂岩魔像。
+            </p>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 text-sm">
+              <div>
+                <span class="text-xs text-sandMuted block">異變徵兆</span>
+                <span class="text-goldBright font-serif">黑沙倒流・日蝕長夜</span>
+              </div>
+              <div>
+                <span class="text-xs text-sandMuted block">混沌根源</span>
+                <span class="text-red-400 font-serif">深淵巨蛇阿佩普</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- 紀元 3 -->
+          <article data-era="2" class="worldview-era-card myth-border rounded-xl p-8 sm:p-10 bg-obsidianLight/80 backdrop-blur-sm transition-all duration-500 motion-slide-right">
+            <div class="flex items-center gap-3 text-antiqueGold font-display text-xs tracking-[0.25em] mb-3">
+              <span>ERA III // JUDGMENT OF ETERNAL NIGHT</span>
+              <span class="h-[1px] flex-1 bg-antiqueGold/25"></span>
+            </div>
+            <h3 class="font-serif text-2xl sm:text-3xl font-bold text-gold-foil mb-4">永夜審判紀：無名行者的覺醒</h3>
+            <p class="text-sandstone/85 leading-relaxed mb-5">
+              為了在永恆沙漏徹底流盡前重鑄天平，阿努比斯喚醒了沉睡於王陵深處的「持秤者」。你將攜帶殘缺的安卡十字與太陽神餘燼，穿梭於現世神廟與冥界杜阿特之間，蒐集失落的真理碎片，裁決眾神與凡人的最終命運。
+            </p>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 text-sm">
+              <div>
+                <span class="text-xs text-sandMuted block">玩家使命</span>
+                <span class="text-goldBright font-serif">重聚聖物・校準冥界之秤</span>
+              </div>
+              <div>
+                <span class="text-xs text-sandMuted block">決戰之地</span>
+                <span class="text-sandstone font-serif">雙重真理審判殿</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       4. 【角色介紹 (Characters)】
+       - 角色切換按鈕 + 切換動畫
+       - 顯示名稱/介紹 + 展開角色背景故事
+       - 角色視覺 Hover 動畫 + 點擊角色觸發打字機對話
+       ========================================================= -->
+  <section id="characters" class="relative py-24 sm:py-32 bg-gradient-to-b from-obsidian via-[#0C1219] to-obsidian border-t border-antiqueGold/15">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- 標題 -->
+      <div class="text-center max-w-3xl mx-auto mb-14 motion-fade-in">
+        <span class="font-display text-xs tracking-[0.35em] text-antiqueGold uppercase block mb-3">Deities & Mortals</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-sandstone mb-4">神祇與命運化身</h2>
+        <p class="text-sandMuted text-sm sm:text-base">切換神祇印記以檢視能力與列傳，點擊角色神像可聆聽來自冥界的神諭低語。</p>
+      </div>
+
+      <!-- 角色切換按鈕列 -->
+      <div class="flex flex-wrap justify-center gap-3 sm:gap-5 mb-12 motion-fade-in" role="tablist">
+        <button data-char-index="0" class="char-tab-btn active px-6 py-3.5 rounded-lg border border-antiqueGold bg-lapis/50 text-goldBright font-serif font-semibold tracking-wider flex items-center gap-3 transition-all shadow-[0_0_20px_rgba(197,160,89,0.25)]">
+          <span class="text-lg">𓃣</span>
+          <span>阿努比斯・冥界引渡者</span>
+        </button>
+        <button data-char-index="1" class="char-tab-btn px-6 py-3.5 rounded-lg border border-antiqueGold/30 bg-obsidianLight/70 text-sandMuted hover:text-sandstone hover:border-antiqueGold/60 font-serif font-semibold tracking-wider flex items-center gap-3 transition-all">
+          <span class="text-lg">𓇼</span>
+          <span>賽琳娜・失落星辰祭司</span>
+        </button>
+        <button data-char-index="2" class="char-tab-btn px-6 py-3.5 rounded-lg border border-antiqueGold/30 bg-obsidianLight/70 text-sandMuted hover:text-sandstone hover:border-antiqueGold/60 font-serif font-semibold tracking-wider flex items-center gap-3 transition-all">
+          <span class="text-lg">𓅃</span>
+          <span>荷魯斯・太陽船守望者</span>
+        </button>
+      </div>
+
+      <!-- 角色主展示區 (含切換動畫容器) -->
+      <div id="character-display-container" class="char-switch-animate grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        <!-- 左側：互動角色神像立繪卡片 (Hover 動畫 + 點擊觸發神諭對話) -->
+        <div class="lg:col-span-5">
+          <div id="character-portrait-trigger" title="點擊角色聆聽神諭對話" class="char-portrait-card myth-border rounded-2xl bg-gradient-to-b from-[#13293D]/60 via-obsidianLight to-obsidian p-6 sm:p-8 cursor-pointer relative overflow-hidden group select-none">
+            
+            <!-- 背景動態旋轉神環 -->
+            <div class="sacred-ring absolute -top-12 -right-12 w-64 h-64 rounded-full border border-antiqueGold/30 border-dashed pointer-events-none opacity-40"></div>
+            <div class="sacred-ring absolute -bottom-16 -left-16 w-72 h-72 rounded-full border border-lapisGlow/50 pointer-events-none opacity-40"></div>
+
+            <!-- 懸浮古埃及象形文字背景 -->
+            <div id="char-hieroglyphs" class="hieroglyph-float absolute top-6 left-6 font-serif text-2xl tracking-[0.4em] text-antiqueGold pointer-events-none">
+              𓇋𓈖𓊪𓅱 𓁢
+            </div>
+
+            <!-- 頂部互動提示徽章 -->
+            <div class="relative z-10 flex justify-between items-center mb-4">
+              <span id="char-element-tag" class="px-3 py-1 rounded text-xs font-display tracking-widest bg-obsidian/80 border border-antiqueGold/40 text-antiqueGold">
+                ATTRIBUTE // SOUL & SHADOW
+              </span>
+              <span class="inline-flex items-center gap-1.5 text-xs text-goldBright bg-antiqueGold/15 px-3 py-1 rounded-full border border-antiqueGold/30 group-hover:bg-antiqueGold group-hover:text-obsidian transition-colors">
+                <span class="w-2 h-2 rounded-full bg-goldBright group-hover:bg-obsidian animate-ping"></span>
+                點擊聆聽神諭
+              </span>
+            </div>
+
+            <!-- 精緻藝術 SVG 神祇立繪視覺 -->
+            <div id="char-art-canvas" class="relative z-10 my-4 h-72 sm:h-80 flex items-center justify-center">
+              <!-- 由 JS 動態注入專屬高精度向量神祇藝術 -->
+            </div>
+
+            <!-- 互動對話氣泡框 (點擊角色時觸發打字機台詞) -->
+            <div id="char-dialogue-box" class="relative z-20 mt-4 p-4 rounded-xl bg-obsidian/90 border border-antiqueGold/45 shadow-inner min-h-[84px] flex flex-col justify-between">
+              <div class="flex items-center justify-between text-[11px] text-antiqueGold font-display tracking-widest mb-1">
+                <span id="dialogue-speaker">ANUBIS // ORACLE</span>
+                <span>點擊角色切換下一句神諭 ↻</span>
+              </div>
+              <p id="dialogue-text" class="font-serif text-sm sm:text-base text-sandstone leading-relaxed">
+                「凡人的心臟若重於真理之羽，便將沉入無盡黑沙。」
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右側：角色名稱、介紹、屬性數值與「可展開背景故事」 -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="myth-border rounded-2xl p-6 sm:p-10 bg-obsidianLight/85 backdrop-blur-md">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+              <span id="char-subtitle" class="font-display text-xs sm:text-sm tracking-[0.3em] text-antiqueGold uppercase">LORD OF THE SACRED LAND</span>
+              <span id="char-weapon" class="text-xs text-sandMuted font-serif">聖器：黑曜石審判權杖</span>
+            </div>
+            
+            <h3 id="char-name" class="font-serif text-3xl sm:text-5xl font-bold text-gold-foil mb-5">
+              阿努比斯・冥界引渡者
+            </h3>
+
+            <p id="char-summary" class="text-sandstone/90 text-base sm:text-lg leading-relaxed mb-6">
+              掌管防腐儀式與冥界天平的胡狼首神祇。在太陽船沉入黑沙後，他拒絕讓失衡的靈魂墜入虛無，親自以神力重鑄永恆沙漏，尋找能承受真理重量的凡間代行者。
+            </p>
+
+            <!-- 角色戰鬥與神力屬性條 -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 py-5 border-y border-antiqueGold/20 mb-6">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-sandMuted">神性裁決</span>
+                  <span id="stat-1-val" class="text-goldBright font-mono">95</span>
+                </div>
+                <div class="h-1.5 bg-obsidian rounded-full overflow-hidden">
+                  <div id="stat-1-bar" class="h-full bg-antiqueGold transition-all duration-700" style="width: 95%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-sandMuted">冥沙操控</span>
+                  <span id="stat-2-val" class="text-goldBright font-mono">90</span>
+                </div>
+                <div class="h-1.5 bg-obsidian rounded-full overflow-hidden">
+                  <div id="stat-2-bar" class="h-full bg-lapisGlow transition-all duration-700" style="width: 90%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="text-sandMuted">星象預知</span>
+                  <span id="stat-3-val" class="text-goldBright font-mono">82</span>
+                </div>
+                <div class="h-1.5 bg-obsidian rounded-full overflow-hidden">
+                  <div id="stat-3-bar" class="h-full bg-antiqueGold transition-all duration-700" style="width: 82%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 可展開角色背景故事手風琴按鈕 -->
+            <div>
+              <button id="toggle-lore-btn" aria-expanded="false" class="btn-myth w-full py-3.5 px-5 rounded-lg border border-antiqueGold/50 bg-obsidian/70 hover:bg-lapis/40 flex items-center justify-between text-left transition-all">
+                <span class="font-serif font-semibold text-goldBright tracking-wider flex items-center gap-2">
+                  <span>📜</span>
+                  <span id="toggle-lore-label">展開完整神話列傳與秘辛</span>
+                </span>
+                <svg id="toggle-lore-icon" class="w-5 h-5 text-antiqueGold transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- 展開內容抽屜 -->
+              <div id="char-lore-drawer" class="grid grid-rows-[0fr] transition-all duration-500 ease-in-out">
+                <div class="overflow-hidden">
+                  <div class="pt-5 mt-3 border-t border-antiqueGold/15 text-sm sm:text-base text-sandstone/85 leading-relaxed space-y-3">
+                    <p id="char-lore-p1"></p>
+                    <p id="char-lore-p2" class="text-sandMuted italic border-l-2 border-antiqueGold pl-4"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       5. 【故事探索 (Story Exploration - Scroll Storytelling)】
+       ========================================================= -->
+  <section id="story" class="relative py-24 sm:py-32 bg-obsidian noise-overlay border-t border-antiqueGold/15">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-20 motion-fade-in">
+        <span class="font-display text-xs tracking-[0.35em] text-antiqueGold uppercase block mb-3">Interactive Chapter Timeline</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-sandstone mb-4">故事探索：杜阿特夜航錄</h2>
+        <p class="text-sandMuted text-sm sm:text-base">沿著尼羅河冥界星軌向下探索，點擊古籍殘頁解鎖隱藏的古埃及神話檔案。</p>
+      </div>
+
+      <!-- 垂直時間軸容器 -->
+      <div class="relative">
+        <!-- 中央垂直金線 -->
+        <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-antiqueGold/50 to-transparent -translate-x-1/2"></div>
+
+        <div class="space-y-16">
+          
+          <!-- 第一章 -->
+          <div class="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="md:text-right md:pr-12 motion-slide-left">
+              <span class="font-display text-xs tracking-[0.25em] text-antiqueGold">CHAPTER I // THE SUNKEN OBELISK</span>
+              <h3 class="font-serif text-2xl sm:text-3xl font-bold text-sandstone mt-2 mb-3">第一章：金字塔底的裂隙</h3>
+              <p class="text-sandMuted leading-relaxed text-sm sm:text-base mb-4">
+                底比斯的祭司在血月之夜發現，大金字塔地底的「奔奔石」停止了共鳴。你從沉睡千年的石棺中甦醒，掌心烙印著發光的荷魯斯之眼，踏入被流沙掩埋的地下神廟。
+              </p>
+              <button data-codex="0" class="open-codex-btn inline-flex items-center gap-2 text-xs font-serif text-goldBright border border-antiqueGold/40 px-4 py-2 rounded hover:bg-antiqueGold/15 transition-colors">
+                <span>查閱莎草紙檔案：〈奔奔石預言〉</span>
+                <span>→</span>
+              </button>
+            </div>
+            <!-- 中心星辰節點 -->
+            <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-obsidian border-2 border-antiqueGold items-center justify-center text-antiqueGold font-serif shadow-[0_0_20px_rgba(197,160,89,0.5)]">
+              I
+            </div>
+            <div class="md:pl-12 motion-slide-right">
+              <div class="myth-border rounded-xl p-6 bg-gradient-to-br from-lapis/30 to-obsidianLight">
+                <div class="flex items-center justify-between text-xs text-antiqueGold font-display mb-2">
+                  <span>LOCATION: MEMPHIS NECROPOLIS</span>
+                  <span>危險度：★★☆☆☆</span>
+                </div>
+                <p class="font-serif text-sm text-sandstone/90 italic">
+                  「當第一粒黑沙落下，死者將不再安息，生者將遺忘太陽的名字。」
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第二章 -->
+          <div class="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="order-2 md:order-1 md:pr-12 motion-slide-left">
+              <div class="myth-border rounded-xl p-6 bg-gradient-to-bl from-lapis/30 to-obsidianLight">
+                <div class="flex items-center justify-between text-xs text-antiqueGold font-display mb-2">
+                  <span>LOCATION: TWELVE GATES OF DUAT</span>
+                  <span>危險度：★★★★☆</span>
+                </div>
+                <p class="font-serif text-sm text-sandstone/90 italic">
+                  「火湖翻湧著執念的幻影，唯有說出守門蛇神真名之人，方能登上下一艘夜航船。」
+                </p>
+              </div>
+            </div>
+            <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-obsidian border-2 border-antiqueGold items-center justify-center text-antiqueGold font-serif shadow-[0_0_20px_rgba(197,160,89,0.5)]">
+              II
+            </div>
+            <div class="order-1 md:order-2 md:pl-12 motion-slide-right">
+              <span class="font-display text-xs tracking-[0.25em] text-antiqueGold">CHAPTER II // THE NIGHT BARQUE</span>
+              <h3 class="font-serif text-2xl sm:text-3xl font-bold text-sandstone mt-2 mb-3">第二章：杜阿特十二道門</h3>
+              <p class="text-sandMuted leading-relaxed text-sm sm:text-base mb-4">
+                搭乘殘破的太陽夜航船，穿越烈焰之河與迷霧沼澤。在這裡，時間不再線性流動，你必須在「過去的榮光」與「未來的荒蕪」之間切換現實，解開古王國時期的星象機關。
+              </p>
+              <button data-codex="1" class="open-codex-btn inline-flex items-center gap-2 text-xs font-serif text-goldBright border border-antiqueGold/40 px-4 py-2 rounded hover:bg-antiqueGold/15 transition-colors">
+                <span>查閱莎草紙檔案：〈亡靈書・第七門咒文〉</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 第三章 -->
+          <div class="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="md:text-right md:pr-12 motion-slide-left">
+              <span class="font-display text-xs tracking-[0.25em] text-antiqueGold">CHAPTER III // HALL OF TWO TRUTHS</span>
+              <h3 class="font-serif text-2xl sm:text-3xl font-bold text-sandstone mt-2 mb-3">第三章：心臟與羽毛的對決</h3>
+              <p class="text-sandMuted leading-relaxed text-sm sm:text-base mb-4">
+                抵達冥界最深處的「雙重真理大廳」。四十二位審判神祇環伺左右，混沌巨蛇阿佩普正試圖吞噬最後的真理之羽。你必須將自己一路收集的記憶化為砝碼，親手校準決定世界存亡的冥界之秤。
+              </p>
+              <button data-codex="2" class="open-codex-btn inline-flex items-center gap-2 text-xs font-serif text-goldBright border border-antiqueGold/40 px-4 py-2 rounded hover:bg-antiqueGold/15 transition-colors">
+                <span>查閱莎草紙檔案：〈最終秤心儀式〉</span>
+                <span>→</span>
+              </button>
+            </div>
+            <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-obsidian border-2 border-antiqueGold items-center justify-center text-antiqueGold font-serif shadow-[0_0_20px_rgba(197,160,89,0.5)]">
+              III
+            </div>
+            <div class="md:pl-12 motion-slide-right">
+              <div class="myth-border rounded-xl p-6 bg-gradient-to-br from-lapis/30 to-obsidianLight">
+                <div class="flex items-center justify-between text-xs text-antiqueGold font-display mb-2">
+                  <span>LOCATION: SANCTUM OF MA'AT</span>
+                  <span>危險度：★★★★★</span>
+                </div>
+                <p class="font-serif text-sm text-sandstone/90 italic">
+                  「吾未曾令尼羅河乾涸，吾未曾竊取神廟供品——聽憑天平裁決吾之靈魂。」
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 莎草紙神話檔案彈窗 Modal (取代 alert) -->
+  <div id="codex-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="myth-border max-w-lg w-full rounded-2xl bg-obsidianLight p-6 sm:p-8 shadow-2xl relative">
+      <button id="close-codex-btn" aria-label="關閉檔案" class="absolute top-4 right-4 w-8 h-8 rounded-full border border-antiqueGold/40 text-antiqueGold hover:bg-antiqueGold hover:text-obsidian flex items-center justify-center transition-colors">
+        ✕
+      </button>
+      <span id="codex-tag" class="font-display text-xs tracking-[0.25em] text-antiqueGold block mb-2">SACRED PAPYRUS</span>
+      <h4 id="codex-title" class="font-serif text-2xl font-bold text-gold-foil mb-4">檔案標題</h4>
+      <div class="w-16 h-[1px] bg-antiqueGold/40 mb-4"></div>
+      <p id="codex-content" class="text-sandstone/90 text-sm sm:text-base leading-relaxed mb-6"></p>
+      <button id="close-codex-confirm" class="btn-myth w-full py-2.5 rounded border border-antiqueGold/60 text-goldBright font-serif text-sm">
+        收起古籍卷軸
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       6. 【場景探索 Explore - 3D 聖物與神廟互動殿堂 (Three.js)】
+       - 滑鼠拖曳旋轉模型
+       - 滾輪縮放 + 介面放大/縮小/重置按鈕
+       - 點擊 3D 物件 (金字塔核心 / 守護方尖碑 / 真理聖杯) 顯示考據介紹
+       ========================================================= -->
+  <section id="explore-3d" class="relative py-24 sm:py-32 bg-gradient-to-b from-obsidian via-[#0E1722] to-obsidian border-t border-antiqueGold/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 motion-fade-in">
+        <div>
+          <span class="font-display text-xs tracking-[0.35em] text-antiqueGold uppercase block mb-2">Interactive 3D Sanctum</span>
+          <h2 class="font-serif text-3xl sm:text-5xl font-bold text-sandstone">聖物 3D 殿堂：阿努比斯祭壇</h2>
+        </div>
+        <p class="text-sandMuted text-sm max-w-md">
+          拖曳畫面可 360° 旋轉聖物祭壇，使用滾輪或控制鈕縮放視角，直接<strong class="text-goldBright font-normal">點擊 3D 場景中的發光聖物</strong>檢視古埃及考據設定。
+        </p>
+      </div>
+
+      <!-- 3D 殿堂主畫布與懸浮 UI 容器 -->
+      <div class="myth-border rounded-2xl overflow-hidden bg-obsidian relative shadow-[0_25px_70px_rgba(0,0,0,0.9)]">
+        
+        <!-- 3D WebGL 畫布容器 -->
+        <div id="relic-3d-container" class="w-full h-[480px] sm:h-[580px] cursor-grab active:cursor-grabbing relative"></div>
+
+        <!-- 左上角操作指引標籤 -->
+        <div class="absolute top-4 left-4 z-10 flex flex-wrap gap-2 pointer-events-none">
+          <span class="px-3 py-1.5 rounded bg-obsidian/80 backdrop-blur-md border border-antiqueGold/30 text-xs text-sandstone/90 flex items-center gap-1.5">
+            <span class="text-antiqueGold">🖱️</span> 拖曳旋轉
+          </span>
+          <span class="px-3 py-1.5 rounded bg-obsidian/80 backdrop-blur-md border border-antiqueGold/30 text-xs text-sandstone/90 flex items-center gap-1.5">
+            <span class="text-antiqueGold">🔍</span> 滾輪縮放
+          </span>
+          <span class="px-3 py-1.5 rounded bg-lapis/80 backdrop-blur-md border border-antiqueGold/50 text-xs text-goldBright flex items-center gap-1.5">
+            <span>✦</span> 點擊發光聖物查看介紹
+          </span>
+        </div>
+
+        <!-- 右下角 3D 視角縮放與重置控制按鈕 -->
+        <div class="absolute bottom-4 right-4 z-10 flex items-center gap-2 bg-obsidian/85 backdrop-blur-md p-2 rounded-xl border border-antiqueGold/35">
+          <button id="relic-zoom-in" title="放大視角" class="w-9 h-9 rounded-lg border border-antiqueGold/30 text-goldBright hover:bg-antiqueGold hover:text-obsidian flex items-center justify-center font-bold transition-colors">
+            +
+          </button>
+          <button id="relic-zoom-out" title="縮小視角" class="w-9 h-9 rounded-lg border border-antiqueGold/30 text-goldBright hover:bg-antiqueGold hover:text-obsidian flex items-center justify-center font-bold transition-colors">
+            −
+          </button>
+          <button id="relic-reset-cam" title="重置視角" class="px-3 h-9 rounded-lg border border-antiqueGold/30 text-xs font-serif text-sandstone hover:border-goldBright hover:text-goldBright transition-colors">
+            重置視角
+          </button>
+        </div>
+
+        <!-- 點擊 3D 物件後顯示的介紹浮動卡片 -->
+        <div id="relic-info-panel" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:w-96 z-20 rounded-xl bg-obsidian/92 backdrop-blur-xl border border-antiqueGold/60 p-5 shadow-2xl transition-all duration-300">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <span id="relic-info-tag" class="text-[11px] font-display tracking-[0.25em] text-antiqueGold uppercase block">RELIC ARCHIVE // 01</span>
+              <h3 id="relic-info-title" class="font-serif text-xl font-bold text-gold-foil">黃金奔奔金字塔核心</h3>
+            </div>
+            <span class="text-antiqueGold text-lg">𓉴</span>
+          </div>
+          <p id="relic-info-desc" class="text-xs sm:text-sm text-sandstone/85 leading-relaxed mb-3">
+            懸浮於祭壇中央的純金微縮金字塔「奔奔石（Benben）」，象徵創世之初從原初混沌之水中升起的第一座聖丘，負責穩定周圍冥界空間的重力與時間流速。
+          </p>
+          <!-- 快速切換三個 3D 聖物焦點按鈕 -->
+          <div class="flex flex-wrap gap-1.5 pt-2 border-t border-white/10">
+            <button data-relic-key="pyramid" class="relic-quick-btn px-2.5 py-1 rounded text-[11px] bg-antiqueGold/20 border border-antiqueGold/50 text-goldBright hover:bg-antiqueGold hover:text-obsidian transition-colors">金字塔核心</button>
+            <button data-relic-key="obelisk" class="relic-quick-btn px-2.5 py-1 rounded text-[11px] bg-obsidianLight border border-white/15 text-sandMuted hover:text-goldBright transition-colors">青金石方尖碑</button>
+            <button data-relic-key="ring" class="relic-quick-btn px-2.5 py-1 rounded text-[11px] bg-obsidianLight border border-white/15 text-sandMuted hover:text-goldBright transition-colors">拉之星象日輪</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       7. 【3D 互動小遊戲：神廟聖甲蟲迷宮 / 拉之眼試煉 (Three.js 3D Game)】
+       ========================================================= -->
+  <section id="temple-game" class="relative py-24 sm:py-32 bg-obsidian noise-overlay border-t border-antiqueGold/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-10 motion-fade-in">
+        <span class="font-display text-xs tracking-[0.35em] text-antiqueGold uppercase block mb-3">Playable 3D Mini-Game</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-sandstone mb-4">3D神廟試煉：拉之眼聖光收集</h2>
+        <p class="text-sandMuted text-sm sm:text-base">
+          操控黃金聖甲蟲光球穿梭於浮空神廟石陣，收集散落的 <span class="text-goldBright font-semibold">5 枚「真理光晶」</span>，並避開巡邏的 <span class="text-red-400 font-semibold">「阿佩普暗影詛咒」</span>！
+        </p>
+      </div>
+
+      <!-- 遊戲主框體 -->
+      <div class="myth-border rounded-2xl overflow-hidden bg-obsidianLight shadow-2xl">
+        
+        <!-- 遊戲頂部狀態 HUD 儀表板 -->
+        <div class="px-5 py-4 bg-obsidian/90 border-b border-antiqueGold/25 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-6">
+            <div>
+              <span class="text-[11px] font-display tracking-widest text-sandMuted block">TRUTH CRYSTALS</span>
+              <span id="game-score-display" class="font-serif text-xl font-bold text-goldBright">0 / 5</span>
+            </div>
+            <div class="h-8 w-[1px] bg-antiqueGold/20"></div>
+            <div>
+              <span class="text-[11px] font-display tracking-widest text-sandMuted block">SOUL INTEGRITY</span>
+              <span id="game-lives-display" class="font-serif text-xl font-bold text-sandstone">♦ ♦ ♦</span>
+            </div>
+            <div class="h-8 w-[1px] bg-antiqueGold/20"></div>
+            <div>
+              <span class="text-[11px] font-display tracking-widest text-sandMuted block">TIME ELAPSED</span>
+              <span id="game-timer-display" class="font-mono text-lg text-antiqueGold">00:00</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="hidden sm:inline text-xs text-sandMuted">操作：WASD / 方向鍵 或 下方按鈕</span>
+            <button id="game-restart-btn" class="btn-myth px-4 py-2 rounded border border-antiqueGold/60 bg-lapis/50 text-goldBright font-serif text-xs sm:text-sm">
+              重新開始試煉
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D 遊戲畫布區 -->
+        <div class="relative">
+          <div id="game-3d-container" class="w-full h-[420px] sm:h-[500px] bg-obsidian"></div>
+
+          <!-- 遊戲開始 / 勝利 / 失敗覆蓋層 -->
+          <div id="game-overlay" class="absolute inset-0 z-20 bg-obsidian/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+            <div class="w-16 h-16 rounded-full border border-antiqueGold/60 bg-lapis/40 flex items-center justify-center text-3xl text-goldBright mb-4 shadow-[0_0_25px_rgba(197,160,89,0.3)]">
+              𓆣
+            </div>
+            <h3 id="game-overlay-title" class="font-serif text-2xl sm:text-4xl font-bold text-gold-foil mb-3">
+              拉之眼試煉：神廟石陣
+            </h3>
+            <p id="game-overlay-desc" class="text-sandstone/85 text-sm sm:text-base max-w-md leading-relaxed mb-6">
+              黃金聖甲蟲已降臨於杜阿特試煉場。收集全部 5 枚真理光晶以點亮冥界之秤，切勿觸碰徘徊的暗影球體。
+            </p>
+            <button id="game-start-btn" class="btn-myth px-8 py-3.5 rounded-lg bg-gradient-to-r from-[#281F15] to-[#13293D] border border-antiqueGold text-goldBright font-serif font-bold tracking-widest text-base shadow-xl">
+              開啟神廟試煉
+            </button>
+          </div>
+        </div>
+
+        <!-- 行動裝置與滑鼠友善虛擬方向控制板 (置於畫布下方，符合遊戲設計規範) -->
+        <div class="p-4 bg-obsidian/95 border-t border-antiqueGold/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-xs text-sandMuted flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-goldBright inline-block"></span>
+            <span>金色菱晶：真理之羽 (+1)</span>
+            <span class="mx-2 text-white/20">|</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span>
+            <span>赤紅暗影：阿佩普詛咒 (-1 生命)</span>
+          </div>
+
+          <!-- 方向按鍵列 -->
+          <div class="flex items-center gap-2 select-none">
+            <button data-dir="left" class="game-pad-btn w-12 h-11 rounded-lg border border-antiqueGold/40 bg-obsidianLight active:bg-antiqueGold active:text-obsidian text-goldBright font-bold shadow">
+              ◀
+            </button>
+            <button data-dir="up" class="game-pad-btn w-12 h-11 rounded-lg border border-antiqueGold/40 bg-obsidianLight active:bg-antiqueGold active:text-obsidian text-goldBright font-bold shadow">
+              ▲
+            </button>
+            <button data-dir="down" class="game-pad-btn w-12 h-11 rounded-lg border border-antiqueGold/40 bg-obsidianLight active:bg-antiqueGold active:text-obsidian text-goldBright font-bold shadow">
+              ▼
+            </button>
+            <button data-dir="right" class="game-pad-btn w-12 h-11 rounded-lg border border-antiqueGold/40 bg-obsidianLight active:bg-antiqueGold active:text-obsidian text-goldBright font-bold shadow">
+              ▶
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       8. 【結尾區域 Ending】史詩收尾宣言與預約探索互動
+       ========================================================= -->
+  <footer id="ending" class="relative pt-24 pb-12 bg-gradient-to-b from-obsidian via-[#0B131D] to-[#050404] border-t border-antiqueGold/25 overflow-hidden">
+    <!-- 背景光暈 -->
+    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-antiqueGold/10 blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10">
+      <div class="motion-fade-in">
+        <span class="text-2xl text-antiqueGold tracking-[0.4em] block mb-4">𓂀 𓋹 𓂀</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-gold-foil mb-6">
+          沙漏將盡，唯真理永存
+        </h2>
+        <p class="text-sandstone/80 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed mb-10">
+          立即登錄你的靈魂印記，搶先獲取《永恆沙漏：冥界之秤》封測神諭與限定「青金石阿努比斯聖甲蟲」典藏外觀。
+        </p>
+
+        <!-- 預約探索表單 (無 alert，使用精美訊息盒回饋) -->
+        <form id="preregister-form" class="max-w-md mx-auto flex flex-col sm:flex-row gap-3 mb-6">
+          <input type="email" id="preregister-email" required placeholder="輸入您的信箱以接收神諭..." class="flex-1 px-4 py-3.5 rounded-lg bg-obsidian/90 border border-antiqueGold/40 text-sandstone placeholder-sandMuted/60 focus:outline-none focus:border-goldBright text-sm" />
+          <button type="submit" class="btn-myth px-6 py-3.5 rounded-lg bg-gradient-to-r from-[#C5A059] to-[#9A7836] text-obsidian font-serif font-bold tracking-wider text-sm whitespace-nowrap shadow-lg">
+            締結契約
+          </button>
+        </form>
+
+        <!-- 預約成功回饋訊息盒 -->
+        <div id="preregister-feedback" class="hidden max-w-md mx-auto mb-10 p-4 rounded-xl border border-antiqueGold/50 bg-lapis/40 text-goldBright text-sm font-serif">
+          ✦ 契約已刻入真理石碑！神諭通知將於沙漏開啟之日送達您的信箱。
+        </div>
+      </div>
+
+      <!-- 頁尾版權與連結 -->
+      <div class="pt-12 mt-12 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-sandMuted">
+        <div class="flex items-center gap-2">
+          <span class="text-antiqueGold font-serif font-bold">永恆沙漏：冥界之秤</span>
+          <span>|</span>
+          <span class="font-display tracking-widest">SCALES OF MA'AT</span>
+        </div>
+        <p>© 2026 DUAT INTERACTIVE STUDIO. ALL RIGHTS RESERVED. 古埃及神話美學概念互動體驗網站。</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================
+       右下角懸浮「聖甲蟲至頂按鈕 (Back to Top)」
+       ========================================================= -->
+  <button id="back-to-top-btn" aria-label="返回頂部" title="返回冥界頂端" class="fixed bottom-6 right-6 z-40 w-13 h-13 p-3 rounded-full bg-obsidian/90 border border-antiqueGold/60 text-goldBright shadow-[0_0_20px_rgba(197,160,89,0.3)] opacity-0 translate-y-6 pointer-events-none transition-all duration-500 hover:scale-110 hover:border-goldBright hover:shadow-[0_0_28px_rgba(229,198,135,0.5)] group">
+    <!-- 外圍旋轉光環 -->
+    <span class="absolute inset-0 rounded-full border border-dashed border-antiqueGold/50 animate-slow-spin pointer-events-none"></span>
+    <!-- 聖甲蟲與向上箭頭圖示 -->
+    <svg class="w-6 h-6 relative z-10 transform group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m0 0l-6 6m6-6l6 6" />
+    </svg>
+  </button>
+
+  <!-- =========================================================
+       JAVASCRIPT 互動引擎：
+       1. Page Transition 過場與導覽控制
+       2. Hero 金沙粒子 Canvas 系統
+       3. Scroll Storytelling (真理天平動態傾斜 + IntersectionObserver)
+       4. 角色切換動畫、打字機神諭對話與故事展開
+       5. Three.js 3D 聖物互動殿堂 (拖曳、縮放、Raycaster 點擊介紹)
+       6. Three.js 3D 神廟試煉小遊戲 (完整可玩性、碰撞、計分)
+       ========================================================= -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      /* ---------------------------------------------------------
+         1. MOTION DESIGN: Page Transition (過場動畫) & 導覽列控制
+         --------------------------------------------------------- */
+      const transitionOverlay = document.getElementById('page-transition-overlay');
+      const transitionLabel = document.getElementById('transition-label');
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const backToTopBtn = document.getElementById('back-to-top-btn');
+      const scrollProgressBar = document.getElementById('scroll-progress-bar');
+
+      // 手機選單切換
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      // 觸發沙暴黑金過場並平滑移動至目標區塊
+      function triggerPageTransition(targetSelector, labelText = '正在穿越神廟結界...') {
+        const targetEl = document.querySelector(targetSelector);
+        if (!targetEl) return;
+
+        transitionLabel.textContent = labelText;
+        transitionOverlay.classList.add('active');
+
+        setTimeout(() => {
+          mobileMenu.classList.add('hidden');
+          targetEl.scrollIntoView({ behavior: 'instant' });
+        }, 420);
+
+        setTimeout(() => {
+          transitionOverlay.classList.remove('active');
+        }, 780);
+      }
+
+      document.querySelectorAll('.nav-transition-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('#')) {
+            e.preventDefault();
+            const label = link.getAttribute('data-nav-label') || '前往神話領域...';
+            triggerPageTransition(href, label);
+          }
+        });
+      });
+
+      // 至頂按鈕點擊
+      backToTopBtn.addEventListener('click', () => {
+        triggerPageTransition('#hero', '重返赫利奧波利斯聖丘...');
+      });
+
+      /* ---------------------------------------------------------
+         2. MOTION DESIGN: IntersectionObserver (Fade In & Slide In)
+         --------------------------------------------------------- */
+      const motionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      }, { threshold: 0.14 });
+
+      document.querySelectorAll('.motion-fade-in, .motion-slide-left, .motion-slide-right').forEach(el => {
+        motionObserver.observe(el);
+      });
+
+      /* ---------------------------------------------------------
+         3. SCROLL ANIMATION: 尼羅河進度條 & 世界觀真理天平敘事聯動
+         --------------------------------------------------------- */
+      const eraCards = document.querySelectorAll('.worldview-era-card');
+      const scaleBeam = document.getElementById('scale-beam-group');
+      const leftPan = document.getElementById('left-pan');
+      const rightPan = document.getElementById('right-pan');
+      const eraDisplayTitle = document.getElementById('era-display-title');
+      const eraBadge = document.getElementById('era-badge');
+      const maatIntegrityText = document.getElementById('maat-integrity-text');
+      const maatIntegrityBar = document.getElementById('maat-integrity-bar');
+      const eraDisplayDesc = document.getElementById('era-display-desc');
+
+      const eraStates = [
+        {
+          title: '第一紀元：黃金太陽紀',
+          badge: '秩序平衡',
+          angle: 0,
+          integrity: '100%',
+          desc: '太陽神拉駕馭「曼傑特太陽船」巡行白晝，冥界天平紋絲不動，生死輪迴遵循古老的真理法則。'
+        },
+        {
+          title: '第二紀元：黃昏失衡紀',
+          badge: '黑沙侵蝕',
+          angle: -14,
+          integrity: '48%',
+          desc: '混沌巨蛇阿佩普吞噬夜航星辰，亡者之心的執念使天平劇烈傾斜，真理之羽光芒黯淡。'
+        },
+        {
+          title: '第三紀元：永夜審判紀',
+          badge: '待重鑄之秤',
+          angle: 6,
+          integrity: '76%',
+          desc: '無名持秤者攜帶安卡火種甦醒，正逐步集結失落聖物，將傾頹的冥界天平重新校準。'
+        }
+      ];
+
+      function updateScaleState(index) {
+        const state = eraStates[index] || eraStates[0];
+        eraDisplayTitle.textContent = state.title;
+        eraBadge.textContent = state.badge;
+        maatIntegrityText.textContent = state.integrity;
+        maatIntegrityBar.style.width = state.integrity;
+        eraDisplayDesc.textContent = state.desc;
+
+        scaleBeam.style.transform = `rotate(${state.angle}deg)`;
+        leftPan.style.transform = `rotate(${-state.angle}deg)`;
+        rightPan.style.transform = `rotate(${-state.angle}deg)`;
+      }
+
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        scrollProgressBar.style.width = `${progress}%`;
+
+        // 顯示/隱藏至頂按鈕
+        if (scrollTop > 450) {
+          backToTopBtn.classList.remove('opacity-0', 'translate-y-6', 'pointer-events-none');
+        } else {
+          backToTopBtn.classList.add('opacity-0', 'translate-y-6', 'pointer-events-none');
+        }
+
+        // 偵測目前視窗中央最接近的世界觀紀元卡片
+        let activeEra = 0;
+        const triggerPoint = window.innerHeight * 0.52;
+        eraCards.forEach((card, idx) => {
+          const rect = card.getBoundingClientRect();
+          if (rect.top <= triggerPoint) {
+            activeEra = idx;
+          }
+        });
+        updateScaleState(activeEra);
+      }, { passive: true });
+
+      /* ---------------------------------------------------------
+         4. HERO CANVAS: 漂浮金沙與餘燼粒子背景動畫
+         --------------------------------------------------------- */
+      const heroCanvas = document.getElementById('hero-sand-canvas');
+      const hCtx = heroCanvas.getContext('2d');
+      let particles = [];
+
+      function resizeHeroCanvas() {
+        heroCanvas.width = heroCanvas.parentElement.clientWidth;
+        heroCanvas.height = heroCanvas.parentElement.clientHeight;
+      }
+      window.addEventListener('resize', resizeHeroCanvas);
+      resizeHeroCanvas();
+
+      class SandParticle {
+        constructor() {
+          this.reset(true);
+        }
+        reset(initial = false) {
+          this.x = initial ? Math.random() * heroCanvas.width : -10;
+          this.y = Math.random() * heroCanvas.height;
+          this.size = Math.random() * 2.2 + 0.5;
+          this.speedX = Math.random() * 0.75 + 0.2;
+          this.speedY = (Math.random() - 0.5) * 0.35;
+          this.alpha = Math.random() * 0.65 + 0.15;
+          this.isBlueSpark = Math.random() > 0.88;
+        }
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY + Math.sin(this.x * 0.01) * 0.15;
+          if (this.x > heroCanvas.width + 10 || this.y < -10 || this.y > heroCanvas.height + 10) {
+            this.reset(false);
+          }
+        }
+        draw() {
+          hCtx.beginPath();
+          hCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          hCtx.fillStyle = this.isBlueSpark
+            ? `rgba(74, 144, 217, ${this.alpha})`
+            : `rgba(212, 175, 95, ${this.alpha})`;
+          hCtx.fill();
+        }
+      }
+
+      for (let i = 0; i < 110; i++) {
+        particles.push(new SandParticle());
+      }
+
+      function animateHeroSand() {
+        hCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        requestAnimationFrame(animateHeroSand);
+      }
+      animateHeroSand();
+
+      /* ---------------------------------------------------------
+         5. CHARACTER SYSTEM: 角色切換動畫、打字機對話、背景故事展開
+         --------------------------------------------------------- */
+      const charactersData = [
+        {
+          name: '阿努比斯・冥界引渡者',
+          subtitle: 'ANUBIS // GUARDIAN OF THE SCALES',
+          speaker: 'ANUBIS // 冥界審判官',
+          element: 'ATTRIBUTE // 冥沙與靈魂裁決',
+          weapon: '聖器：黑曜石審判權杖',
+          hieroglyphs: '𓇋𓈖𓊪𓅱 𓁢',
+          summary: '掌管防腐儀式與冥界天平的胡狼首神祇。在太陽船沉入黑沙後，他拒絕讓失衡的靈魂墜入虛無，親自以神力重鑄永恆沙漏，尋找能承受真理重量的凡間代行者。',
+          stats: [95, 90, 82],
+          loreP1: '在底比斯最古老的葬禮經文中，阿努比斯是第一位為奧西里斯包裹亞麻布並守護其靈魂的神祇。當阿佩普的詛咒腐蝕杜阿特之門時，阿努比斯毅然將自己的半顆神心封入「永恆沙漏」，延緩了冥界崩塌的速度。',
+          loreP2: '「我並非死亡的製造者，而是迷途靈魂在黑暗中唯一能辨認的提燈。」',
+          quotes: [
+            '「凡人的心臟若重於真理之羽，便將沉入無盡黑沙。」',
+            '「沙漏仍在流淌，持秤者，你的時間與勇氣同樣珍貴。」',
+            '「即使眾神陷入沉睡，杜阿特的律法也不容混沌玷污。」'
+          ],
+          artSvg: `
+            <svg class="w-64 h-64 drop-shadow-[0_0_25px_rgba(197,160,89,0.35)]" viewBox="0 0 240 240" fill="none">
+              <circle cx="120" cy="120" r="95" stroke="#C5A059" stroke-opacity="0.3" stroke-width="1"/>
+              <polygon points="120,22 205,120 120,218 35,120" stroke="#1E466E" stroke-width="2" fill="rgba(19,41,61,0.25)"/>
+              <!-- 胡狼神側影幾何剪影 -->
+              <path d="M95 55 L85 20 L110 48 L130 48 L152 18 L145 58 L168 78 L142 92 L148 145 L165 195 H75 L92 145 L98 92 L78 82 Z" fill="#12100E" stroke="#E5C687" stroke-width="2"/>
+              <!-- 青金石神眼與項飾 -->
+              <polygon points="128,68 142,72 130,78" fill="#4FA3E3"/>
+              <path d="M92 108 Q120 132 148 108" stroke="#C5A059" stroke-width="3" fill="none"/>
+              <path d="M88 118 Q120 146 152 118" stroke="#E5C687" stroke-width="1.5" fill="none"/>
+              <!-- 手持安卡十字 -->
+              <circle cx="120" cy="158" r="10" stroke="#E5C687" stroke-width="2.5"/>
+              <line x1="120" y1="168" x2="120" y2="195" stroke="#E5C687" stroke-width="2.5"/>
+              <line x1="108" y1="176" x2="132" y2="176" stroke="#E5C687" stroke-width="2.5"/>
+            </svg>`
+        },
+        {
+          name: '賽琳娜・失落星辰祭司',
+          subtitle: 'SELENE // ORACLE OF THE NILE STARS',
+          speaker: 'SELENE // 丹德拉星象師',
+          element: 'ATTRIBUTE // 尼羅星輝與時間回溯',
+          weapon: '聖器：青金石星盤法杖',
+          hieroglyphs: '𓇼 𓆣 𓈗',
+          summary: '出身丹德拉神廟的最後一位大祭司，雙目因直視日蝕神諭而化為深邃的青金石色。她能透過星象軌跡讀取砂礫中殘存的記憶，為行者指引穿越迷霧的生路。',
+          stats: [78, 86, 98],
+          loreP1: '賽琳娜在幼年時便能聽見尼羅河水底星辰的歌唱。當血月降臨、神廟典籍化為灰燼之際，她以自身記憶為代價啟動了「天狼星星盤」，將自己化為半靈體狀態留存於現實與冥界的夾縫中。',
+          loreP2: '「星辰從不說謊，它們只是靜靜等待有人抬頭讀懂黑夜的預言。」',
+          quotes: [
+            '「天狼星的軌跡已然偏離，唯有找回初生之羽才能平息怒濤。」',
+            '「別害怕黑夜，行者，最璀璨的真理往往藏在最深沉的陰影裡。」',
+            '「我聽見砂礫在低語……那是千年前法老未竟的悔恨。」'
+          ],
+          artSvg: `
+            <svg class="w-64 h-64 drop-shadow-[0_0_25px_rgba(79,163,227,0.35)]" viewBox="0 0 240 240" fill="none">
+              <circle cx="120" cy="120" r="92" stroke="#4FA3E3" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="6 4"/>
+              <circle cx="120" cy="72" r="28" stroke="#E5C687" stroke-width="1.5" fill="rgba(197,160,89,0.1)"/>
+              <!-- 祭司優雅剪影與星冠 -->
+              <path d="M120 32 L126 52 L146 52 L130 64 L136 82 L120 70 L104 82 L110 64 L94 52 L114 52 Z" fill="#E5C687"/>
+              <path d="M98 92 C98 78, 142 78, 142 92 L162 195 H78 Z" fill="#101822" stroke="#C5A059" stroke-width="2"/>
+              <path d="M84 125 Q120 155 156 125" stroke="#4FA3E3" stroke-width="2" fill="none"/>
+              <circle cx="120" cy="152" r="14" stroke="#E5C687" stroke-width="2"/>
+              <circle cx="120" cy="152" r="5" fill="#4FA3E3"/>
+            </svg>`
+        },
+        {
+          name: '荷魯斯・太陽船守望者',
+          subtitle: 'HORUS // AVENGER OF THE SKY',
+          speaker: 'HORUS // 天空與王權之神',
+          element: 'ATTRIBUTE // 烈陽金焰與破邪之槍',
+          weapon: '聖器：日輪戰戟・瓦吉特之眼',
+          hieroglyphs: '𓅃 𓂀 𓇳',
+          summary: '鷹首人身的天空之神，曾以右眼化作太陽照耀大地。在夜航船遭混沌巨蛇襲擊後，他身披殘破的黃金戰甲獨守冥界第七道門，以永不熄滅的日炎焚盡來犯的暗影魔物。',
+          stats: [99, 84, 80],
+          loreP1: '荷魯斯曾歷經八十年的王權試煉，深知守護秩序所需付出的代價。如今他左眼映照幽冥月光，右眼燃燒太陽真火，誓言在太陽神拉重新甦醒前，絕不讓任何一隻混沌爪牙踏出深淵半步。',
+          loreP2: '「只要我的戰戟仍能刺破黑霧，赫利奧波利斯的黎明便終將降臨！」',
+          quotes: [
+            '「以瓦吉特之眼為誓，任何混沌造物都休想越過此門！」',
+            '「你的眼神裡沒有畏懼，凡人，接下這道太陽餘燼吧！」',
+            '「黑夜越是漫長，破曉時的金光便越是耀眼。」'
+          ],
+          artSvg: `
+            <svg class="w-64 h-64 drop-shadow-[0_0_25px_rgba(229,198,135,0.4)]" viewBox="0 0 240 240" fill="none">
+              <!-- 太陽雙冠與光翼 -->
+              <path d="M35 110 Q75 75 120 115 Q165 75 205 110 Q165 135 120 130 Q75 135 35 110 Z" fill="rgba(197,160,89,0.18)" stroke="#E5C687" stroke-width="1.5"/>
+              <circle cx="120" cy="48" r="18" fill="rgba(229,198,135,0.25)" stroke="#E5C687" stroke-width="2"/>
+              <!-- 鷹首戰神輪廓 -->
+              <path d="M102 68 L120 58 L142 72 L152 84 L136 90 L146 115 L164 195 H76 L94 115 L102 88 Z" fill="#15120E" stroke="#E5C687" stroke-width="2"/>
+              <polygon points="124,74 138,76 128,83" fill="#E5C687"/>
+              <!-- 戰戟斜貫 -->
+              <line x1="65" y1="205" x2="178" y2="35" stroke="#E5C687" stroke-width="2.5"/>
+              <polygon points="178,35 166,44 174,50" fill="#E5C687"/>
+            </svg>`
+        }
+      ];
+
+      let currentCharIdx = 0;
+      let currentQuoteIdx = 0;
+      let typewriterInterval = null;
+
+      const charDisplayContainer = document.getElementById('character-display-container');
+      const charTabBtns = document.querySelectorAll('.char-tab-btn');
+      const charPortraitTrigger = document.getElementById('character-portrait-trigger');
+      const dialogueTextEl = document.getElementById('dialogue-text');
+      const toggleLoreBtn = document.getElementById('toggle-lore-btn');
+      const charLoreDrawer = document.getElementById('char-lore-drawer');
+      const toggleLoreIcon = document.getElementById('toggle-lore-icon');
+      const toggleLoreLabel = document.getElementById('toggle-lore-label');
+
+      // 打字機效果呈現角色語音台詞
+      function playTypewriterDialogue(text) {
+        clearInterval(typewriterInterval);
+        dialogueTextEl.textContent = '';
+        let i = 0;
+        typewriterInterval = setInterval(() => {
+          dialogueTextEl.textContent += text.charAt(i);
+          i++;
+          if (i >= text.length) {
+            clearInterval(typewriterInterval);
+          }
+        }, 28);
+      }
+
+      function renderCharacter(index) {
+        currentCharIdx = index;
+        currentQuoteIdx = 0;
+        const data = charactersData[index];
+
+        // 觸發切換動畫
+        charDisplayContainer.classList.remove('char-switch-animate');
+        void charDisplayContainer.offsetWidth; // 強制重繪以重啟 CSS 動畫
+        charDisplayContainer.classList.add('char-switch-animate');
+
+        // 更新按鈕樣式
+        charTabBtns.forEach((btn, idx) => {
+          if (idx === index) {
+            btn.className = 'char-tab-btn active px-6 py-3.5 rounded-lg border border-antiqueGold bg-lapis/50 text-goldBright font-serif font-semibold tracking-wider flex items-center gap-3 transition-all shadow-[0_0_20px_rgba(197,160,89,0.25)]';
+          } else {
+            btn.className = 'char-tab-btn px-6 py-3.5 rounded-lg border border-antiqueGold/30 bg-obsidianLight/70 text-sandMuted hover:text-sandstone hover:border-antiqueGold/60 font-serif font-semibold tracking-wider flex items-center gap-3 transition-all';
+          }
+        });
+
+        // 填入角色資料
+        document.getElementById('char-name').textContent = data.name;
+        document.getElementById('char-subtitle').textContent = data.subtitle;
+        document.getElementById('dialogue-speaker').textContent = data.speaker;
+        document.getElementById('char-element-tag').textContent = data.element;
+        document.getElementById('char-weapon').textContent = data.weapon;
+        document.getElementById('char-hieroglyphs').textContent = data.hieroglyphs;
+        document.getElementById('char-summary').textContent = data.summary;
+        document.getElementById('char-art-canvas').innerHTML = data.artSvg;
+
+        // 屬性數值
+        document.getElementById('stat-1-val').textContent = data.stats[0];
+        document.getElementById('stat-1-bar').style.width = `${data.stats[0]}%`;
+        document.getElementById('stat-2-val').textContent = data.stats[1];
+        document.getElementById('stat-2-bar').style.width = `${data.stats[1]}%`;
+        document.getElementById('stat-3-val').textContent = data.stats[2];
+        document.getElementById('stat-3-bar').style.width = `${data.stats[2]}%`;
+
+        // 背景列傳
+        document.getElementById('char-lore-p1').textContent = data.loreP1;
+        document.getElementById('char-lore-p2').textContent = data.loreP2;
+
+        // 播放第一句神諭台詞
+        playTypewriterDialogue(data.quotes[0]);
+      }
+
+      charTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-char-index'), 10);
+          if (idx !== currentCharIdx) {
+            renderCharacter(idx);
+          }
+        });
+      });
+
+      // 點擊角色卡片觸發下一句神諭對話
+      charPortraitTrigger.addEventListener('click', () => {
+        const quotes = charactersData[currentCharIdx].quotes;
+        currentQuoteIdx = (currentQuoteIdx + 1) % quotes.length;
+        playTypewriterDialogue(quotes[currentQuoteIdx]);
+      });
+
+      // 展開/收合角色背景故事手風琴
+      let isLoreExpanded = false;
+      toggleLoreBtn.addEventListener('click', () => {
+        isLoreExpanded = !isLoreExpanded;
+        toggleLoreBtn.setAttribute('aria-expanded', isLoreExpanded);
+        if (isLoreExpanded) {
+          charLoreDrawer.classList.remove('grid-rows-[0fr]');
+          charLoreDrawer.classList.add('grid-rows-[1fr]');
+          toggleLoreIcon.classList.add('rotate-180');
+          toggleLoreLabel.textContent = '收起完整神話列傳';
+        } else {
+          charLoreDrawer.classList.remove('grid-rows-[1fr]');
+          charLoreDrawer.classList.add('grid-rows-[0fr]');
+          toggleLoreIcon.classList.remove('rotate-180');
+          toggleLoreLabel.textContent = '展開完整神話列傳與秘辛';
+        }
+      });
+
+      // 初始化第一位角色
+      renderCharacter(0);
+
+      /* ---------------------------------------------------------
+         6. STORY CODEX MODAL: 神話檔案殘頁互動
+         --------------------------------------------------------- */
+      const codexData = [
+        {
+          tag: 'PAPYRUS ARCHIVE // 01',
+          title: '〈奔奔石預言〉— 赫利奧波利斯秘錄',
+          content: '奔奔石乃創世之初最先沐浴太陽神拉光芒的聖石，金字塔的尖頂皆是模仿其形態而建。古籍記載：「當奔奔石失去金輝並滲出黑沙，代表冥界與現世的界碑已遭腐蝕，唯有血脈中流淌星輝之人能喚醒沉睡的聖甲蟲引路。」'
+        },
+        {
+          tag: 'PAPYRUS ARCHIVE // 02',
+          title: '〈亡靈書・第七門咒文〉',
+          content: '杜阿特冥界共有十二道守衛森嚴的大門，對應黑夜的十二個小時。第七道門由「吞噬暗影者」把守，亡靈必須手持青金石護符並高呼太陽神的三個秘密真名，方能免於被烈焰之湖吞沒。'
+        },
+        {
+          tag: 'PAPYRUS ARCHIVE // 03',
+          title: '〈最終秤心儀式〉— 雙重真理大廳',
+          content: '在審判大廳中央，胡狼神阿努比斯親自校準天平：左盤放置亡者的心臟（Ib），右盤放置正義女神瑪阿特的鴕鳥羽毛。若兩者達成完美平衡，靈魂將獲准前往蘆葦原（Aaru）獲得永生。'
+        }
+      ];
+
+      const codexModal = document.getElementById('codex-modal');
+      document.querySelectorAll('.open-codex-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-codex'), 10);
+          const item = codexData[idx];
+          document.getElementById('codex-tag').textContent = item.tag;
+          document.getElementById('codex-title').textContent = item.title;
+          document.getElementById('codex-content').textContent = item.content;
+          codexModal.classList.remove('hidden');
+          codexModal.classList.add('flex');
+        });
+      });
+
+      function closeCodexModal() {
+        codexModal.classList.add('hidden');
+        codexModal.classList.remove('flex');
+      }
+      document.getElementById('close-codex-btn').addEventListener('click', closeCodexModal);
+      document.getElementById('close-codex-confirm').addEventListener('click', closeCodexModal);
+      codexModal.addEventListener('click', (e) => {
+        if (e.target === codexModal) closeCodexModal();
+      });
+
+      /* ---------------------------------------------------------
+         7. THREE.JS #1: 3D 聖物互動殿堂 (阿努比斯聖物祭壇)
+         - 拖曳旋轉、滾輪與按鈕縮放、Raycaster 點擊介紹
+         --------------------------------------------------------- */
+      function initRelic3DTemple() {
+        const container = document.getElementById('relic-3d-container');
+        if (!container || typeof THREE === 'undefined') return;
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x090807, 0.045);
+
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+        let targetZoom = 9.5;
+        camera.position.set(0, 3.8, targetZoom);
+        camera.lookAt(0, 0.8, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // 燈光設計：古銅金主光 + 青金石藍環境補光
+        const ambientLight = new THREE.AmbientLight(0x1e466e, 1.4);
+        scene.add(ambientLight);
+
+        const goldPointLight = new THREE.PointLight(0xe5c687, 2.6, 25);
+        goldPointLight.position.set(3, 6, 4);
+        scene.add(goldPointLight);
+
+        const lapisRimLight = new THREE.PointLight(0x3a86ff, 1.8, 20);
+        lapisRimLight.position.set(-5, 2, -4);
+        scene.add(lapisRimLight);
+
+        // 祭壇群組 (供滑鼠拖曳旋轉)
+        const altarGroup = new THREE.Group();
+        scene.add(altarGroup);
+
+        // 材質定義
+        const obsidianMat = new THREE.MeshStandardMaterial({
+          color: 0x11100e,
+          metalness: 0.7,
+          roughness: 0.25
+        });
+        const goldMat = new THREE.MeshStandardMaterial({
+          color: 0xc5a059,
+          metalness: 0.88,
+          roughness: 0.18,
+          emissive: 0x3b2a0c,
+          emissiveIntensity: 0.4
+        });
+        const lapisMat = new THREE.MeshStandardMaterial({
+          color: 0x163859,
+          metalness: 0.6,
+          roughness: 0.2,
+          emissive: 0x0d2640,
+          emissiveIntensity: 0.6
+        });
+
+        // 1. 階梯式黑曜石神廟基座
+        const base1 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.8, 0.35, 8), obsidianMat);
+        base1.position.y = -0.8;
+        altarGroup.add(base1);
+
+        const base2 = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.8, 0.3, 8), lapisMat);
+        base2.position.y = -0.5;
+        altarGroup.add(base2);
+
+        const goldRingFloor = new THREE.Mesh(new THREE.RingGeometry(2.85, 3.05, 32), goldMat);
+        goldRingFloor.rotation.x = -Math.PI / 2;
+        goldRingFloor.position.y = -0.61;
+        altarGroup.add(goldRingFloor);
+
+        // 可點擊互動物件陣列
+        const interactiveMeshes = [];
+
+        // 2. 中央懸浮「黃金奔奔金字塔核心」
+        const pyramidGeo = new THREE.ConeGeometry(1.15, 1.65, 4);
+        const pyramidMesh = new THREE.Mesh(pyramidGeo, goldMat);
+        pyramidMesh.position.set(0, 1.1, 0);
+        pyramidMesh.userData = { key: 'pyramid' };
+        altarGroup.add(pyramidMesh);
+        interactiveMeshes.push(pyramidMesh);
+
+        // 金字塔外圍旋轉星象日輪
+        const ringGeo = new THREE.TorusGeometry(1.85, 0.045, 16, 64);
+        const sunRingMesh = new THREE.Mesh(ringGeo, goldMat);
+        sunRingMesh.position.set(0, 1.15, 0);
+        sunRingMesh.rotation.x = Math.PI / 3;
+        sunRingMesh.userData = { key: 'ring' };
+        altarGroup.add(sunRingMesh);
+        interactiveMeshes.push(sunRingMesh);
+
+        // 3. 四隅「青金石守護方尖碑」
+        const obeliskPositions = [
+          [-2.1, 0.55, -2.1],
+          [2.1, 0.55, -2.1],
+          [-2.1, 0.55, 2.1],
+          [2.1, 0.55, 2.1]
+        ];
+        obeliskPositions.forEach(pos => {
+          const obGroup = new THREE.Group();
+          const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.36, 2.1, 0.36), lapisMat);
+          const tip = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.45, 4), goldMat);
+          tip.position.y = 1.27;
+          tip.rotation.y = Math.PI / 4;
+          obGroup.add(shaft, tip);
+          obGroup.position.set(...pos);
+          shaft.userData = { key: 'obelisk' };
+          tip.userData = { key: 'obelisk' };
+          altarGroup.add(obGroup);
+          interactiveMeshes.push(shaft, tip);
+        });
+
+        // 漂浮金色神沙粒子
+        const dustGeo = new THREE.BufferGeometry();
+        const dustCount = 160;
+        const dustPositions = new Float32Array(dustCount * 3);
+        for (let i = 0; i < dustCount * 3; i += 3) {
+          dustPositions[i] = (Math.random() - 0.5) * 10;
+          dustPositions[i + 1] = Math.random() * 6 - 1;
+          dustPositions[i + 2] = (Math.random() - 0.5) * 10;
+        }
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+        const dustMat = new THREE.PointsMaterial({ color: 0xe5c687, size: 0.06, transparent: true, opacity: 0.75 });
+        const dustPoints = new THREE.Points(dustGeo, dustMat);
+        scene.add(dustPoints);
+
+        // 聖物資訊更新邏輯
+        const relicDescriptions = {
+          pyramid: {
+            tag: 'RELIC ARCHIVE // 01',
+            title: '黃金奔奔金字塔核心',
+            desc: '懸浮於祭壇中央的純金微縮金字塔「奔奔石（Benben）」，象徵創世之初從原初混沌之水中升起的第一座聖丘，負責穩定周圍冥界空間的重力與時間流速。'
+          },
+          obelisk: {
+            tag: 'RELIC ARCHIVE // 02',
+            title: '青金石守護方尖碑',
+            desc: '矗立於祭壇四隅的青金石方尖碑，碑頂鍍有純金以捕捉太陽神拉的第一縷晨曦。在遊戲中，啟動四座方尖碑可開啟通往杜阿特深層的傳送門。'
+          },
+          ring: {
+            tag: 'RELIC ARCHIVE // 03',
+            title: '拉之星象日輪環',
+            desc: '環繞金字塔旋轉的黃銅與黃金星軌儀，刻有古埃及三十六旬星宿刻度，用以預測日蝕與混沌潮汐降臨的精確時刻。'
+          }
+        };
+
+        function selectRelicInfo(key) {
+          const info = relicDescriptions[key];
+          if (!info) return;
+          document.getElementById('relic-info-tag').textContent = info.tag;
+          document.getElementById('relic-info-title').textContent = info.title;
+          document.getElementById('relic-info-desc').textContent = info.desc;
+
+          document.querySelectorAll('.relic-quick-btn').forEach(btn => {
+            if (btn.getAttribute('data-relic-key') === key) {
+              btn.className = 'relic-quick-btn px-2.5 py-1 rounded text-[11px] bg-antiqueGold/25 border border-antiqueGold text-goldBright transition-colors';
+            } else {
+              btn.className = 'relic-quick-btn px-2.5 py-1 rounded text-[11px] bg-obsidianLight border border-white/15 text-sandMuted hover:text-goldBright transition-colors';
+            }
+          });
+        }
+
+        document.querySelectorAll('.relic-quick-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectRelicInfo(btn.getAttribute('data-relic-key'));
+          });
+        });
+
+        // 滑鼠拖曳旋轉與 Raycaster 點擊檢測
+        let isDragging = false;
+        let dragMoved = false;
+        let prevMouse = { x: 0, y: 0 };
+        let rotVelocity = { x: 0, y: 0.004 };
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function onPointerDown(clientX, clientY) {
+          isDragging = true;
+          dragMoved = false;
+          prevMouse = { x: clientX, y: clientY };
+        }
+
+        function onPointerMove(clientX, clientY) {
+          if (!isDragging) return;
+          const dx = clientX - prevMouse.x;
+          const dy = clientY - prevMouse.y;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+
+          rotVelocity.y = dx * 0.007;
+          rotVelocity.x = dy * 0.004;
+          altarGroup.rotation.y += rotVelocity.y;
+          altarGroup.rotation.x = Math.max(-0.45, Math.min(0.55, altarGroup.rotation.x + rotVelocity.x));
+          prevMouse = { x: clientX, y: clientY };
+        }
+
+        function onPointerUp(clientX, clientY) {
+          isDragging = false;
+          if (!dragMoved && clientX !== undefined) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactiveMeshes);
+            if (intersects.length > 0) {
+              const key = intersects[0].object.userData.key;
+              if (key) selectRelicInfo(key);
+            }
+          }
+        }
+
+        const domEl = renderer.domElement;
+        domEl.addEventListener('mousedown', e => onPointerDown(e.clientX, e.clientY));
+        window.addEventListener('mousemove', e => onPointerMove(e.clientX, e.clientY));
+        window.addEventListener('mouseup', e => onPointerUp(e.clientX, e.clientY));
+
+        // 觸控支援
+        domEl.addEventListener('touchstart', e => {
+          if (e.touches.length === 1) onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        domEl.addEventListener('touchmove', e => {
+          if (e.touches.length === 1) onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        domEl.addEventListener('touchend', e => {
+          const touch = e.changedTouches[0];
+          onPointerUp(touch ? touch.clientX : undefined, touch ? touch.clientY : undefined);
+        });
+
+        // 滾輪縮放
+        domEl.addEventListener('wheel', e => {
+          e.preventDefault();
+          targetZoom = Math.max(5.5, Math.min(14.5, targetZoom + e.deltaY * 0.006));
+        }, { passive: false });
+
+        // 控制按鈕縮放與重置
+        document.getElementById('relic-zoom-in').addEventListener('click', () => {
+          targetZoom = Math.max(5.5, targetZoom - 1.4);
+        });
+        document.getElementById('relic-zoom-out').addEventListener('click', () => {
+          targetZoom = Math.min(14.5, targetZoom + 1.4);
+        });
+        document.getElementById('relic-reset-cam').addEventListener('click', () => {
+          targetZoom = 9.5;
+          altarGroup.rotation.set(0, 0, 0);
+        });
+
+        // 視窗大小調整
+        window.addEventListener('resize', () => {
+          if (!container.clientWidth) return;
+          camera.aspect = container.clientWidth / container.clientHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // 渲染迴圈
+        let clock = new THREE.Clock();
+        function animateRelic() {
+          requestAnimationFrame(animateRelic);
+          const elapsed = clock.getElapsedTime();
+
+          // 金字塔上下懸浮與自轉
+          pyramidMesh.position.y = 1.15 + Math.sin(elapsed * 2) * 0.14;
+          pyramidMesh.rotation.y += 0.01;
+          sunRingMesh.rotation.z -= 0.008;
+
+          // 自動微幅公轉慣性
+          if (!isDragging) {
+            altarGroup.rotation.y += 0.0025;
+          }
+
+          // 平滑縮放插值
+          camera.position.z += (targetZoom - camera.position.z) * 0.1;
+          camera.lookAt(0, 0.7, 0);
+
+          dustPoints.rotation.y = elapsed * 0.04;
+          renderer.render(scene, camera);
+        }
+        animateRelic();
+      }
+
+      initRelic3DTemple();
+
+      /* ---------------------------------------------------------
+         8. THREE.JS #2: 3D 互動小遊戲《拉之眼試煉：聖光收集》
+         - 操控黃金聖甲蟲收集 5 枚真理光晶，躲避 3 個阿佩普暗影球
+         --------------------------------------------------------- */
+      function initTemple3DGame() {
+        const container = document.getElementById('game-3d-container');
+        if (!container || typeof THREE === 'undefined') return;
+
+        const scoreDisplay = document.getElementById('game-score-display');
+        const livesDisplay = document.getElementById('game-lives-display');
+        const timerDisplay = document.getElementById('game-timer-display');
+        const gameOverlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('game-overlay-title');
+        const overlayDesc = document.getElementById('game-overlay-desc');
+        const startBtn = document.getElementById('game-start-btn');
+        const restartBtn = document.getElementById('game-restart-btn');
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x090807, 0.035);
+
+        const camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(0, 11.5, 11.5);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // 燈光
+        scene.add(new THREE.AmbientLight(0x23486e, 1.5));
+        const dirLight = new THREE.DirectionalLight(0xe5c687, 1.8);
+        dirLight.position.set(6, 14, 8);
+        scene.add(dirLight);
+
+        // 建造古埃及神廟浮空棋盤地板 (13x13 單位)
+        const arenaSize = 12;
+        const floorGroup = new THREE.Group();
+        const tileDarkMat = new THREE.MeshStandardMaterial({ color: 0x12100e, roughness: 0.4, metalness: 0.5 });
+        const tileLapisMat = new THREE.MeshStandardMaterial({ color: 0x13293d, roughness: 0.35, metalness: 0.6 });
+        const borderGoldMat = new THREE.MeshStandardMaterial({ color: 0xc5a059, metalness: 0.85, roughness: 0.2 });
+
+        for (let x = -5; x <= 5; x += 2) {
+          for (let z = -5; z <= 5; z += 2) {
+            const isAlt = ((x + z) / 2) % 2 === 0;
+            const tile = new THREE.Mesh(
+              new THREE.BoxGeometry(1.92, 0.3, 1.92),
+              isAlt ? tileDarkMat : tileLapisMat
+            );
+            tile.position.set(x, -0.15, z);
+            floorGroup.add(tile);
+          }
+        }
+
+        // 外框金邊護欄
+        const frameOuter = new THREE.Mesh(new THREE.BoxGeometry(arenaSize + 0.6, 0.45, arenaSize + 0.6), borderGoldMat);
+        frameOuter.position.y = -0.25;
+        floorGroup.add(frameOuter);
+        scene.add(floorGroup);
+
+        // 玩家角色：黃金聖甲蟲光球 + 神環
+        const playerGroup = new THREE.Group();
+        const scarabBody = new THREE.Mesh(
+          new THREE.SphereGeometry(0.48, 24, 24),
+          new THREE.MeshStandardMaterial({
+            color: 0xe5c687,
+            emissive: 0xc5a059,
+            emissiveIntensity: 0.7,
+            metalness: 0.9,
+            roughness: 0.15
+          })
+        );
+        const scarabHalo = new THREE.Mesh(
+          new THREE.TorusGeometry(0.72, 0.04, 12, 32),
+          borderGoldMat
+        );
+        scarabHalo.rotation.x = Math.PI / 2;
+        playerGroup.add(scarabBody, scarabHalo);
+        playerGroup.position.set(0, 0.55, 4.5);
+        scene.add(playerGroup);
+
+        const playerLight = new THREE.PointLight(0xe5c687, 1.8, 6);
+        playerGroup.add(playerLight);
+
+        // 遊戲狀態變數
+        let isPlaying = false;
+        let score = 0;
+        let lives = 3;
+        let startTime = 0;
+        let invulnerableTimer = 0;
+        let crystals = [];
+        let shadows = [];
+
+        const crystalGeo = new THREE.OctahedronGeometry(0.45, 0);
+        const crystalMat = new THREE.MeshStandardMaterial({
+          color: 0xf7e1a0,
+          emissive: 0xc5a059,
+          emissiveIntensity: 0.9,
+          metalness: 0.8,
+          roughness: 0.1
+        });
+
+        const shadowGeo = new THREE.DodecahedronGeometry(0.55, 1);
+        const shadowMat = new THREE.MeshStandardMaterial({
+          color: 0x3b0909,
+          emissive: 0x9e1b1b,
+          emissiveIntensity: 0.85,
+          roughness: 0.3
+        });
+
+        const crystalCoords = [
+          [-4.2, 0.65, -4.2],
+          [4.2, 0.65, -4.2],
+          [0, 0.65, 0],
+          [-4.2, 0.65, 2.5],
+          [4.2, 0.65, 2.5]
+        ];
+
+        const shadowConfigs = [
+          { x: -3, z: -2, vx: 0.065, vz: 0 },
+          { x: 3, z: 0.5, vx: -0.075, vz: 0 },
+          { x: 0, z: -3.5, vx: 0, vz: 0.065 }
+        ];
+
+        function updateHUD() {
+          scoreDisplay.textContent = `${score} / 5`;
+          livesDisplay.textContent = '♦ '.repeat(Math.max(0, lives)).trim() || '✕';
+        }
+
+        function resetEntities() {
+          crystals.forEach(c => scene.remove(c));
+          shadows.forEach(s => scene.remove(s.mesh));
+          crystals = [];
+          shadows = [];
+
+          crystalCoords.forEach(pos => {
+            const mesh = new THREE.Mesh(crystalGeo, crystalMat);
+            mesh.position.set(...pos);
+            scene.add(mesh);
+            crystals.push(mesh);
+          });
+
+          shadowConfigs.forEach(cfg => {
+            const mesh = new THREE.Mesh(shadowGeo, shadowMat);
+            mesh.position.set(cfg.x, 0.6, cfg.z);
+            scene.add(mesh);
+            shadows.push({ mesh, vx: cfg.vx, vz: cfg.vz });
+          });
+
+          playerGroup.position.set(0, 0.55, 4.5);
+          score = 0;
+          lives = 3;
+          invulnerableTimer = 0;
+          startTime = Date.now();
+          updateHUD();
+        }
+
+        function startGame() {
+          resetEntities();
+          isPlaying = true;
+          gameOverlay.classList.add('hidden');
+        }
+
+        function endGame(isWin) {
+          isPlaying = false;
+          gameOverlay.classList.remove('hidden');
+          if (isWin) {
+            overlayTitle.textContent = '神諭達成：真理天平已重鑄！';
+            overlayDesc.textContent = `你成功集齊 5 枚真理之羽光晶，以無畏之姿通過了拉之眼試煉（耗時 ${timerDisplay.textContent}）。`;
+            startBtn.textContent = '再次挑戰試煉';
+          } else {
+            overlayTitle.textContent = '靈魂遭受暗影侵蝕';
+            overlayDesc.textContent = '阿佩普的詛咒吞噬了黃金聖甲蟲的光芒。重整心神，再次踏入神廟石陣吧！';
+            startBtn.textContent = '重新凝聚靈魂';
+          }
+        }
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+
+        // 鍵盤與虛擬方向控制
+        const keys = { up: false, down: false, left: false, right: false };
+
+        window.addEventListener('keydown', e => {
+          if (['ArrowUp', 'KeyW'].includes(e.code)) { keys.up = true; if (isPlaying) e.preventDefault(); }
+          if (['ArrowDown', 'KeyS'].includes(e.code)) { keys.down = true; if (isPlaying) e.preventDefault(); }
+          if (['ArrowLeft', 'KeyA'].includes(e.code)) { keys.left = true; if (isPlaying) e.preventDefault(); }
+          if (['ArrowRight', 'KeyD'].includes(e.code)) { keys.right = true; if (isPlaying) e.preventDefault(); }
+        });
+
+        window.addEventListener('keyup', e => {
+          if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
+          if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
+          if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+          if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+        });
+
+        document.querySelectorAll('.game-pad-btn').forEach(btn => {
+          const dir = btn.getAttribute('data-dir');
+          const press = (e) => { e.preventDefault(); keys[dir] = true; };
+          const release = (e) => { e.preventDefault(); keys[dir] = false; };
+          btn.addEventListener('mousedown', press);
+          btn.addEventListener('mouseup', release);
+          btn.addEventListener('mouseleave', release);
+          btn.addEventListener('touchstart', press, { passive: false });
+          btn.addEventListener('touchend', release);
+        });
+
+        window.addEventListener('resize', () => {
+          if (!container.clientWidth) return;
+          camera.aspect = container.clientWidth / container.clientHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // 遊戲主迴圈
+        const bound = 5.1;
+        const speed = 0.095;
+
+        function animateGame() {
+          requestAnimationFrame(animateGame);
+
+          // 光晶自轉與上下浮動
+          crystals.forEach((c, idx) => {
+            c.rotation.y += 0.03;
+            c.position.y = 0.65 + Math.sin(Date.now() * 0.004 + idx) * 0.12;
+          });
+
+          if (isPlaying) {
+            // 更新計時器
+            const sec = Math.floor((Date.now() - startTime) / 1000);
+            const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+            const ss = String(sec % 60).padStart(2, '0');
+            timerDisplay.textContent = `${mm}:${ss}`;
+
+            // 玩家移動
+            if (keys.up) playerGroup.position.z = Math.max(-bound, playerGroup.position.z - speed);
+            if (keys.down) playerGroup.position.z = Math.min(bound, playerGroup.position.z + speed);
+            if (keys.left) playerGroup.position.x = Math.max(-bound, playerGroup.position.x - speed);
+            if (keys.right) playerGroup.position.x = Math.min(bound, playerGroup.position.x + speed);
+
+            scarabHalo.rotation.z += 0.05;
+
+            if (invulnerableTimer > 0) {
+              invulnerableTimer--;
+              playerGroup.visible = Math.floor(invulnerableTimer / 4) % 2 === 0;
+            } else {
+              playerGroup.visible = true;
+            }
+
+            // 暗影球巡邏與碰撞檢測
+            shadows.forEach(s => {
+              s.mesh.position.x += s.vx;
+              s.mesh.position.z += s.vz;
+              s.mesh.rotation.x += 0.04;
+              s.mesh.rotation.y += 0.04;
+
+              if (Math.abs(s.mesh.position.x) > bound) s.vx *= -1;
+              if (Math.abs(s.mesh.position.z) > bound) s.vz *= -1;
+
+              const distToShadow = playerGroup.position.distanceTo(s.mesh.position);
+              if (distToShadow < 0.92 && invulnerableTimer === 0) {
+                lives--;
+                invulnerableTimer = 60;
+                updateHUD();
+                if (lives <= 0) {
+                  endGame(false);
+                }
+              }
+            });
+
+            // 真理光晶收集檢測
+            for (let i = crystals.length - 1; i >= 0; i--) {
+              const dist = playerGroup.position.distanceTo(crystals[i].position);
+              if (dist < 0.95) {
+                scene.remove(crystals[i]);
+                crystals.splice(i, 1);
+                score++;
+                updateHUD();
+                if (score >= 5) {
+                  endGame(true);
+                }
+              }
+            }
+          }
+
+          renderer.render(scene, camera);
+        }
+
+        resetEntities();
+        animateGame();
+      }
+
+      initTemple3DGame();
+
+      /* ---------------------------------------------------------
+         9. ENDING SECTION: 預約探索互動表單
+         --------------------------------------------------------- */
+      const preregisterForm = document.getElementById('preregister-form');
+      const preregisterFeedback = document.getElementById('preregister-feedback');
+      preregisterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById('preregister-email');
+        if (emailInput.value.trim()) {
+          preregisterFeedback.classList.remove('hidden');
+          emailInput.value = '';
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>
